@@ -5,6 +5,256 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FPV Battery Tracker</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    
+    <!-- Import Google Font: Inter (Light 300, Semi-Bold 600) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --bg: #000000; 
+            --border: #333333; 
+            --text-light: #cccccc; 
+            --text-bold: #ffffff;
+            --radius-large: 16px;
+            --radius-small: 12px;
+        }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            font-weight: 300;
+            background-color: var(--bg); 
+            color: var(--text-light); 
+            margin: 0; 
+            padding: 24px 20px; 
+            text-align: center; 
+        }
+        
+        h1, h2, h3, h4, strong { 
+            font-weight: 600; 
+            color: var(--text-bold); 
+            margin-top: 0;
+            letter-spacing: -0.5px;
+        }
+        
+        /* Camera container styling */
+        #reader { 
+            width: 100%; 
+            max-width: 400px; 
+            margin: 0 auto 24px auto; 
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-large); 
+            overflow: hidden; 
+            background: #000; 
+        }
+        
+        /* Fixed 2x Digital zoom effect for small QR code stickers */
+        #reader video { transform: scale(2.0); transform-origin: center center; }
+
+        /* Card sections */
+        .card { 
+            background: transparent; 
+            padding: 24px; 
+            border-radius: var(--radius-large); 
+            border: 1px solid var(--border);
+            margin-bottom: 24px; 
+        }
+        
+        button { 
+            background: #ffffff; 
+            color: #000000; 
+            border: none; 
+            padding: 14px 20px; 
+            font-size: 16px; 
+            font-family: 'Inter', sans-serif;
+            font-weight: 600; 
+            border-radius: var(--radius-small); 
+            cursor: pointer; 
+            margin-top: 16px; 
+            width: 100%; 
+            transition: opacity 0.2s ease;
+        }
+        button:active { opacity: 0.7; }
+        
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            margin-top: 12px; 
+            background: transparent; 
+            color: var(--text-bold); 
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-small); 
+            font-size: 16px; 
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            box-sizing: border-box; 
+        }
+        input:focus {
+            outline: none;
+            border-color: #666666;
+        }
+        
+        #battery-list { 
+            text-align: left; 
+        }
+        
+        .section-title {
+            border-bottom: 1px solid var(--border); 
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .battery-item { 
+            background: transparent; 
+            padding: 16px; 
+            margin-bottom: 12px; 
+            border-radius: var(--radius-small); 
+            border: 1px solid var(--border);
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        
+        .battery-name {
+            font-weight: 600;
+            color: var(--text-bold);
+        }
+
+        .cycle-badge { 
+            background: transparent; 
+            color: var(--text-light); 
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            font-size: 14px;
+            font-weight: 300; 
+            border: 1px solid var(--border);
+        }
+        
+        /* Hide UI elements initially */
+        #action-area, #new-battery-form, #existing-battery-actions {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h2 style="margin-bottom: 24px;">FPV Hangar</h2>
+    
+    <!-- Camera Viewport -->
+    <div id="reader"></div>
+
+    <!-- Scanned Action UI -->
+    <div id="action-area" class="card">
+        <h3 id="status-title">QR Scanned</h3>
+        <p id="scanned-id" style="font-size: 12px; color: #666; margin-bottom: 20px;"></p>
+        
+        <div id="new-battery-form">
+            <p style="margin-bottom: 8px;">New battery detected. Enter a name:</p>
+            <input type="text" id="battery-name" placeholder="e.g. Tattu 850 #1">
+            <button onclick="registerNewBattery()">Save Battery</button>
+        </div>
+
+        <div id="existing-battery-actions">
+            <h2 id="display-name" style="margin-bottom: 8px;"></h2>
+            <p style="margin-top: 0;">Cycles: <strong id="display-cycles" style="font-size: 24px;">0</strong></p>
+            <button onclick="addCycle()">Add Charge Cycle</button>
+        </div>
+    </div>
+
+    <!-- Battery List -->
+    <div id="battery-list" class="card">
+        <h3 class="section-title">Saved Batteries</h3>
+        <div id="list-container"></div>
+    </div>
+
+    <script>
+        let batteryDb = JSON.parse(localStorage.getItem('fpvBatteries')) || {};
+        let currentScannedId = null;
+
+        // Scanner configuration with slider removed
+        const html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", 
+            { 
+                fps: 10, 
+                qrbox: { width: 220, height: 220 }
+            }, 
+            false
+        );
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+        function onScanSuccess(decodedText, decodedResult) {
+            currentScannedId = decodedText;
+            document.getElementById('action-area').style.display = 'block';
+            document.getElementById('scanned-id').innerText = "ID: " + decodedText;
+
+            if (batteryDb[currentScannedId]) {
+                document.getElementById('new-battery-form').style.display = 'none';
+                document.getElementById('existing-battery-actions').style.display = 'block';
+                document.getElementById('display-name').innerText = batteryDb[currentScannedId].name;
+                document.getElementById('display-cycles').innerText = batteryDb[currentScannedId].cycles;
+            } else {
+                document.getElementById('existing-battery-actions').style.display = 'none';
+                document.getElementById('new-battery-form').style.display = 'block';
+                document.getElementById('battery-name').value = '';
+            }
+        }
+
+        function onScanFailure(error) {
+            // Silence background search errors
+        }
+
+        function registerNewBattery() {
+            const name = document.getElementById('battery-name').value;
+            if (!name) return alert("Please enter a name!");
+            
+            batteryDb[currentScannedId] = { name: name, cycles: 0 };
+            saveAndRefresh();
+            onScanSuccess(currentScannedId, null);
+        }
+
+        function addCycle() {
+            batteryDb[currentScannedId].cycles += 1;
+            saveAndRefresh();
+            onScanSuccess(currentScannedId, null);
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('fpvBatteries', JSON.stringify(batteryDb));
+            renderList();
+        }
+
+        function renderList() {
+            const container = document.getElementById('list-container');
+            container.innerHTML = '';
+            
+            const entries = Object.entries(batteryDb);
+            if(entries.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; font-size: 14px;">No batteries scanned yet.</p>';
+                return;
+            }
+
+            for (const [id, bat] of entries) {
+                container.innerHTML += `
+                    <div class="battery-item">
+                        <span class="battery-name">${bat.name}</span>
+                        <span class="cycle-badge">${bat.cycles} Cycles</span>
+                    </div>
+                `;
+            }
+        }
+
+        renderList();
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPV Battery Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <style>
         :root { --bg: #121212; --surface: #1e1e1e; --primary: #03dac6; --text: #ffffff; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; text-align: center; }
