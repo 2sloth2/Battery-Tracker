@@ -60,10 +60,8 @@
 const html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
     fps: 10, 
     qrbox: {width: 250, height: 250},
-    videoConstraints: {
-        facingMode: "environment",
-        advanced: [{ zoom: 2.0 }]
-    }
+    showZoomSliderIfSupported: true,
+    defaultZoomValueIfSupported: 2
 }, /* verbose= */ false);
 
         function onScanSuccess(decodedText, decodedResult) {
