@@ -46,14 +46,15 @@
             border: 1px solid var(--border); 
             border-radius: var(--radius-large); 
             overflow: hidden; 
-            background: #000; 
+            background: #000;
+            position: relative; 
         }
         
         /* Extreme 3.5x Digital zoom effect for tiny QR codes */
         #reader video { transform: scale(3.5); transform-origin: center center; }
 
-        /* Hide default library links/text injected by html5-qrcode */
-        #reader a, #reader span { display: none !important; }
+        /* Hide default library links, text, and the info icon */
+        #reader a, #reader span, #reader img { display: none !important; }
 
         /* Card sections */
         .card { 
@@ -133,7 +134,7 @@
 </head>
 <body>
     
-    <!-- Camera Viewport right at the top -->
+    <!-- Camera Viewport -->
     <div id="reader"></div>
 
     <!-- Scanned Action UI -->
@@ -172,7 +173,28 @@
             }, 
             false
         );
+        
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+        // Tap-to-Focus trigger for the camera feed
+        document.getElementById('reader').addEventListener('click', async () => {
+            try {
+                const videoElement = document.querySelector('#reader video');
+                if (videoElement && videoElement.srcObject) {
+                    const track = videoElement.srcObject.getVideoTracks()[0];
+                    const capabilities = track.getCapabilities();
+                    
+                    // Prod the camera hardware to evaluate continuous focus again
+                    if (capabilities.focusMode) {
+                        await track.applyConstraints({
+                            advanced: [{ focusMode: "continuous" }]
+                        });
+                    }
+                }
+            } catch (error) {
+                // Silently fail if the phone doesn't support web API hardware focus overrides
+            }
+        });
 
         function onScanSuccess(decodedText, decodedResult) {
             currentScannedId = decodedText;
