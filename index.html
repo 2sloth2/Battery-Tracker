@@ -6,7 +6,6 @@
     <title>FPV Hangar</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     
-    <!-- Import Google Font: Inter (Light 300, Semi-Bold 600) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
@@ -38,7 +37,6 @@
             letter-spacing: -0.5px;
         }
         
-        /* Camera container styling */
         #reader { 
             width: 100%; 
             max-width: 400px; 
@@ -50,13 +48,8 @@
             position: relative; 
         }
         
-        /* Extreme 3.5x Digital zoom effect for tiny QR codes */
-        #reader video { transform: scale(3.5); transform-origin: center center; }
-
-        /* Hide default library links, text, and the info icon */
         #reader a, #reader span, #reader img { display: none !important; }
 
-        /* Card sections */
         .card { 
             background: transparent; 
             padding: 24px; 
@@ -128,16 +121,13 @@
             border: 1px solid var(--border);
         }
         
-        /* Hide UI elements initially */
         #action-area, #new-battery-form, #existing-battery-actions { display: none; }
     </style>
 </head>
 <body>
     
-    <!-- Camera Viewport -->
     <div id="reader"></div>
 
-    <!-- Scanned Action UI -->
     <div id="action-area" class="card">
         <h3 id="status-title">QR Scanned</h3>
         <p id="scanned-id" style="font-size: 12px; color: #666; margin-bottom: 20px;"></p>
@@ -155,7 +145,6 @@
         </div>
     </div>
 
-    <!-- Battery List -->
     <div id="battery-list" class="card">
         <h3 class="section-title">Hangar</h3>
         <div id="list-container"></div>
@@ -169,14 +158,14 @@
             "reader", 
             { 
                 fps: 10, 
-                qrbox: { width: 220, height: 220 }
+                // Adjusted scanning box for close-up scanning
+                qrbox: { width: 250, height: 250 }
             }, 
             false
         );
         
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 
-        // Tap-to-Focus trigger for the camera feed
         document.getElementById('reader').addEventListener('click', async () => {
             try {
                 const videoElement = document.querySelector('#reader video');
@@ -184,7 +173,6 @@
                     const track = videoElement.srcObject.getVideoTracks()[0];
                     const capabilities = track.getCapabilities();
                     
-                    // Prod the camera hardware to evaluate continuous focus again
                     if (capabilities.focusMode) {
                         await track.applyConstraints({
                             advanced: [{ focusMode: "continuous" }]
@@ -192,7 +180,7 @@
                     }
                 }
             } catch (error) {
-                // Silently fail if the phone doesn't support web API hardware focus overrides
+                // Ignore focus errors
             }
         });
 
@@ -213,9 +201,7 @@
             }
         }
 
-        function onScanFailure(error) {
-            // Silence background search errors
-        }
+        function onScanFailure(error) { }
 
         function registerNewBattery() {
             const name = document.getElementById('battery-name').value;
