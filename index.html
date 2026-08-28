@@ -57,8 +57,14 @@
         let currentScannedId = null;
 
         // Initialize the QR Scanner using the HTML5-QRCode library
-        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, /* verbose= */ false);
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+const html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+    fps: 10, 
+    qrbox: {width: 250, height: 250},
+    videoConstraints: {
+        facingMode: "environment",
+        advanced: [{ zoom: 2.0 }]
+    }
+}, /* verbose= */ false);
 
         function onScanSuccess(decodedText, decodedResult) {
             currentScannedId = decodedText;
