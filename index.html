@@ -45,10 +45,13 @@
             border-radius: var(--radius-large); 
             overflow: hidden; 
             background: #000;
-            position: relative; 
         }
         
+        /* Hides the default links, text, and the info icon */
         #reader a, #reader span, #reader img { display: none !important; }
+
+        /* Hides the zoom slider visually, while letting the hardware zoom stay active */
+        #reader input[type="range"] { display: none !important; }
 
         .card { 
             background: transparent; 
@@ -158,30 +161,30 @@
             "reader", 
             { 
                 fps: 10, 
-                // Adjusted scanning box for close-up scanning
-                qrbox: { width: 250, height: 250 }
+                qrbox: { width: 200, height: 200 },
+                // Enables the true hardware zoom API so the engine sees the magnified image
+                showZoomSliderIfSupported: true,
+                defaultZoomValueIfSupported: 3
             }, 
             false
         );
         
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 
+        // Tap-to-Focus trigger for the camera feed
         document.getElementById('reader').addEventListener('click', async () => {
             try {
                 const videoElement = document.querySelector('#reader video');
                 if (videoElement && videoElement.srcObject) {
                     const track = videoElement.srcObject.getVideoTracks()[0];
                     const capabilities = track.getCapabilities();
-                    
                     if (capabilities.focusMode) {
                         await track.applyConstraints({
                             advanced: [{ focusMode: "continuous" }]
                         });
                     }
                 }
-            } catch (error) {
-                // Ignore focus errors
-            }
+            } catch (error) { }
         });
 
         function onScanSuccess(decodedText, decodedResult) {
