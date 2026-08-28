@@ -5,125 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FPV Hangar</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
     
     <style>
-        :root { 
-            --bg: #000000; 
-            --border: #333333; 
-            --text-light: #cccccc; 
-            --text-bold: #ffffff;
-            --radius-large: 16px;
-            --radius-small: 12px;
-        }
+        :root { --bg: #000000; --border: #333333; --text-light: #cccccc; --text-bold: #ffffff; --radius-large: 16px; --radius-small: 12px; }
+        body { font-family: 'Inter', sans-serif; font-weight: 300; background-color: var(--bg); color: var(--text-light); margin: 0; padding: 24px 20px; text-align: center; }
+        h1, h2, h3, h4, strong { font-weight: 600; color: var(--text-bold); margin-top: 0; letter-spacing: -0.5px; }
         
-        body { 
-            font-family: 'Inter', sans-serif; 
-            font-weight: 300;
-            background-color: var(--bg); 
-            color: var(--text-light); 
-            margin: 0; 
-            padding: 24px 20px; 
-            text-align: center; 
-        }
-        
-        h1, h2, h3, h4, strong { 
-            font-weight: 600; 
-            color: var(--text-bold); 
-            margin-top: 0;
-            letter-spacing: -0.5px;
-        }
-        
-        #reader { 
-            width: 100%; 
-            max-width: 400px; 
-            margin: 0 auto 24px auto; 
-            border: 1px solid var(--border); 
-            border-radius: var(--radius-large); 
-            overflow: hidden; 
-            background: #000;
-        }
-        
-        /* Hides the default links, text, and the info icon */
+        #reader { width: 100%; max-width: 400px; margin: 0 auto 24px auto; border: 1px solid var(--border); border-radius: var(--radius-large); overflow: hidden; background: #000; }
         #reader a, #reader span, #reader img { display: none !important; }
-
-        /* Hides the zoom slider visually, while letting the hardware zoom stay active */
-        #reader input[type="range"] { display: none !important; }
-
-        .card { 
-            background: transparent; 
-            padding: 24px; 
-            border-radius: var(--radius-large); 
-            border: 1px solid var(--border);
-            margin-bottom: 24px; 
-        }
         
-        button { 
-            background: #ffffff; 
-            color: #000000; 
-            border: none; 
-            padding: 14px 20px; 
-            font-size: 16px; 
-            font-family: 'Inter', sans-serif;
-            font-weight: 600; 
-            border-radius: var(--radius-small); 
-            cursor: pointer; 
-            margin-top: 16px; 
-            width: 100%; 
-            transition: opacity 0.2s ease;
-        }
+        .card { background: transparent; padding: 24px; border-radius: var(--radius-large); border: 1px solid var(--border); margin-bottom: 24px; }
+        button { background: #ffffff; color: #000000; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; border-radius: var(--radius-small); cursor: pointer; margin-top: 16px; width: 100%; transition: opacity 0.2s ease; }
         button:active { opacity: 0.7; }
-        
-        input { 
-            width: 100%; 
-            padding: 14px; 
-            margin-top: 12px; 
-            background: transparent; 
-            color: var(--text-bold); 
-            border: 1px solid var(--border); 
-            border-radius: var(--radius-small); 
-            font-size: 16px; 
-            font-family: 'Inter', sans-serif;
-            font-weight: 300;
-            box-sizing: border-box; 
-        }
+        input { width: 100%; padding: 14px; margin-top: 12px; background: transparent; color: var(--text-bold); border: 1px solid var(--border); border-radius: var(--radius-small); font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 300; box-sizing: border-box; }
         input:focus { outline: none; border-color: #666666; }
         
         #battery-list { text-align: left; }
-        
-        .section-title {
-            border-bottom: 1px solid var(--border); 
-            padding-bottom: 16px;
-            margin-bottom: 16px;
-            font-size: 18px;
-        }
-
-        .battery-item { 
-            background: transparent; 
-            padding: 16px; 
-            margin-bottom: 12px; 
-            border-radius: var(--radius-small); 
-            border: 1px solid var(--border);
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
-        
+        .section-title { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; font-size: 18px; }
+        .battery-item { background: transparent; padding: 16px; margin-bottom: 12px; border-radius: var(--radius-small); border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .battery-name { font-weight: 600; color: var(--text-bold); }
-
-        .cycle-badge { 
-            background: transparent; 
-            color: var(--text-light); 
-            padding: 6px 12px; 
-            border-radius: 20px; 
-            font-size: 14px;
-            font-weight: 300; 
-            border: 1px solid var(--border);
-        }
-        
+        .cycle-badge { background: transparent; color: var(--text-light); padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 300; border: 1px solid var(--border); }
         #action-area, #new-battery-form, #existing-battery-actions { display: none; }
     </style>
 </head>
@@ -134,13 +38,11 @@
     <div id="action-area" class="card">
         <h3 id="status-title">QR Scanned</h3>
         <p id="scanned-id" style="font-size: 12px; color: #666; margin-bottom: 20px;"></p>
-        
         <div id="new-battery-form">
             <p style="margin-bottom: 8px;">New battery detected. Enter a name:</p>
             <input type="text" id="battery-name" placeholder="e.g. Tattu 850 #1">
             <button onclick="registerNewBattery()">Save Battery</button>
         </div>
-
         <div id="existing-battery-actions">
             <h2 id="display-name" style="margin-bottom: 8px;"></h2>
             <p style="margin-top: 0;">Cycles: <strong id="display-cycles" style="font-size: 24px;">0</strong></p>
@@ -161,30 +63,27 @@
             "reader", 
             { 
                 fps: 10, 
-                qrbox: { width: 200, height: 200 },
-                // Enables the true hardware zoom API so the engine sees the magnified image
-                showZoomSliderIfSupported: true,
-                defaultZoomValueIfSupported: 3
+                qrbox: { width: 300, height: 300 }, // Maximize scan area
+                videoConstraints: {
+                    facingMode: "environment",
+                    width: { ideal: 1920 }, // Force HD resolution 
+                    height: { ideal: 1080 }
+                }
             }, 
             false
         );
         
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 
-        // Tap-to-Focus trigger for the camera feed
+        // Tap-to-focus trigger
         document.getElementById('reader').addEventListener('click', async () => {
             try {
                 const videoElement = document.querySelector('#reader video');
                 if (videoElement && videoElement.srcObject) {
                     const track = videoElement.srcObject.getVideoTracks()[0];
-                    const capabilities = track.getCapabilities();
-                    if (capabilities.focusMode) {
-                        await track.applyConstraints({
-                            advanced: [{ focusMode: "continuous" }]
-                        });
-                    }
+                    await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
                 }
-            } catch (error) { }
+            } catch (error) {}
         });
 
         function onScanSuccess(decodedText, decodedResult) {
@@ -205,47 +104,34 @@
         }
 
         function onScanFailure(error) { }
-
         function registerNewBattery() {
             const name = document.getElementById('battery-name').value;
             if (!name) return alert("Please enter a name!");
-            
             batteryDb[currentScannedId] = { name: name, cycles: 0 };
             saveAndRefresh();
             onScanSuccess(currentScannedId, null);
         }
-
         function addCycle() {
             batteryDb[currentScannedId].cycles += 1;
             saveAndRefresh();
             onScanSuccess(currentScannedId, null);
         }
-
         function saveAndRefresh() {
             localStorage.setItem('fpvBatteries', JSON.stringify(batteryDb));
             renderList();
         }
-
         function renderList() {
             const container = document.getElementById('list-container');
             container.innerHTML = '';
-            
             const entries = Object.entries(batteryDb);
             if(entries.length === 0) {
                 container.innerHTML = '<p style="color: #666; text-align: center; font-size: 14px;">No batteries scanned yet.</p>';
                 return;
             }
-
             for (const [id, bat] of entries) {
-                container.innerHTML += `
-                    <div class="battery-item">
-                        <span class="battery-name">${bat.name}</span>
-                        <span class="cycle-badge">${bat.cycles} Cycles</span>
-                    </div>
-                `;
+                container.innerHTML += `<div class="battery-item"><span class="battery-name">${bat.name}</span><span class="cycle-badge">${bat.cycles} Cycles</span></div>`;
             }
         }
-
         renderList();
     </script>
 </body>
