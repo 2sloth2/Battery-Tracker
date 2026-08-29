@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#f5f5f7">
     
-    <link rel="manifest" href='data:application/manifest+json,%7B%22name%22%3A%22FPV%20Battery%20Vault%22%2C%22short_name%22%3A%22Battery%20Vault%22%2C%22display%22%3A%22fullscreen%22%2C%22start_url%22%3A%22.%22%2C%22background_color%22%3A%22%23f5f5f7%22%2C%22theme_color%22%3A%22%23f5f5f7%22%7D'>
+    <link rel="manifest" href="manifest.json">
     
     <title>FPV Battery Vault</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -23,9 +23,9 @@
             --surface: #ffffff; 
             --text-bold: #1d1d1f; 
             --text-light: #515154; 
-            --brand: #151136; /* Very dark blue bordering on purple */
+            --brand: #151136; 
             --primary-text: #ffffff;
-            --danger: #ff3b30;
+            --danger: #7a121f; /* Much darker, stealthy crimson red */
             --input-bg: #f5f5f7;
             --radius: 16px; 
         }
@@ -86,15 +86,13 @@
         .modal-content { background: var(--surface); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; margin-bottom: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
         input, select { width: 100%; padding: 14px; margin-top: 12px; background: var(--input-bg); color: var(--text-bold); border: 1px solid transparent; border-radius: 8px; font-size: 16px; font-family: 'Inter', sans-serif; box-sizing: border-box; transition: border-color 0.2s; }
-        input.error, select.error { border-color: var(--danger); }
-        input:focus, select:focus { outline: none; border-color: #c7c7cc; }
+        input.error, select.error { border-color: var(--danger); border-width: 1px; }
+        input:focus, select:focus { outline: none; border-color: #c7c7cc; border-width: 1px; }
         
         select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238e8e93%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 14px top 50%; background-size: 12px auto; padding-right: 40px; }
         
         .form-row { display: flex; gap: 10px; }
         .form-row select, .form-row input { flex: 1; }
-        
-        #delete-dialog { display: none; }
     </style>
 </head>
 <body>
@@ -148,8 +146,8 @@
 
             <div id="existing-battery-actions">
                 <h2 id="display-name" style="margin-bottom: 8px;"></h2>
-                <p style="color: var(--text-light);">Cycles: <strong id="display-cycles" style="font-size: 28px; color: var(--text-bold);">0</strong></p>
-                <button onclick="addCycle()" style="margin-bottom: 12px;">+ Add 1 Charge Cycle</button>
+                <p style="color: var(--text-light); margin-bottom: 24px;">Cycles: <strong id="display-cycles" style="font-size: 28px; color: var(--text-bold);">0</strong></p>
+                <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">Battery recognized. Tap the chevron on the dashboard card to add cycles or edit details.</p>
             </div>
             
             <button class="secondary" style="margin-top: 12px;" onclick="closeModal()">Close</button>
@@ -321,7 +319,6 @@
                 batteryDb[targetId].type = type;
                 batteryDb[targetId].capacity = capInput.value.trim() + 'mAh';
                 batteryDb[targetId].cycles = cycleCount;
-                closeModal();
             } else {
                 batteryDb[targetId] = { 
                     name: nameInput.value.trim(), 
@@ -331,16 +328,17 @@
                     cycles: cycleCount, 
                     notes: "" 
                 };
-                handleScanResult(targetId); 
             }
             
             saveAndRefresh();
+            closeModal(); // Closes the modal directly upon saving
         }
 
-        function addCycle() {
-            batteryDb[currentScannedId].cycles += 1;
-            saveAndRefresh();
-            handleScanResult(currentScannedId); 
+        function addCycleToId(id) {
+            if(batteryDb[id]) {
+                batteryDb[id].cycles += 1;
+                saveAndRefresh();
+            }
         }
 
         function toggleCard(id) {
@@ -423,6 +421,7 @@
                             <textarea placeholder="Log IR readings (e.g. 3.2mΩ), punch-out feel, or crash history here..." 
                                       oninput="saveNote('${id}', this.value)">${noteText}</textarea>
                             <div class="action-row">
+                                <button class="btn-small" onclick="addCycleToId('${id}')">+1 Cycle</button>
                                 <button class="btn-small btn-edit" onclick="triggerEdit('${id}')">Edit</button>
                                 <button class="btn-small btn-danger-solid" onclick="triggerDelete('${id}')">Delete</button>
                             </div>
