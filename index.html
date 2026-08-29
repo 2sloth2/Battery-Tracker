@@ -13,7 +13,6 @@
     <title>FPV Battery Vault</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     
-    <!-- Import Google Fonts: Inter and Orbitron -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@600;900&display=swap" rel="stylesheet">
@@ -24,7 +23,7 @@
             --surface: #ffffff; 
             --text-bold: #1d1d1f; 
             --text-light: #515154; 
-            --brand: #5c0f1e; 
+            --brand: #151136; /* Very dark blue bordering on purple */
             --primary-text: #ffffff;
             --danger: #ff3b30;
             --input-bg: #f5f5f7;
@@ -57,7 +56,6 @@
 
         #reader-container { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; margin-bottom: 20px; }
         #reader { width: 100%; }
-        .scanner-hint { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; color: #fff; font-size: 14px; font-weight: 600; background: rgba(0,0,0,0.5); padding: 8px; pointer-events: none; }
         
         .battery-card { background: var(--surface); border-radius: var(--radius); margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
         .card-header { padding: 16px 16px 12px 16px; cursor: pointer; display: flex; flex-direction: column; }
@@ -95,6 +93,8 @@
         
         .form-row { display: flex; gap: 10px; }
         .form-row select, .form-row input { flex: 1; }
+        
+        #delete-dialog { display: none; }
     </style>
 </head>
 <body>
@@ -109,7 +109,6 @@
         <h2 style="text-align: center; margin-bottom: 20px;">Scanning...</h2>
         <div id="reader-container" onclick="prodAutofocus()">
             <div id="reader"></div>
-            <div class="scanner-hint">Hold 10-15cm away • Tap to focus</div>
         </div>
         <button class="secondary" onclick="closeScanner()">Cancel</button>
     </div>
@@ -189,7 +188,6 @@
             document.getElementById('dashboard-view').style.display = 'none';
             document.getElementById('scanner-view').style.display = 'block';
             
-            // Safely handle scanner reset
             try {
                 if (html5QrCode) {
                     html5QrCode.clear();
