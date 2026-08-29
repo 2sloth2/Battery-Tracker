@@ -48,7 +48,6 @@
         
         #scanner-view, #modal-overlay, #custom-dialog-overlay, #info-dialog-overlay { display: none; }
         
-        /* Flattened Global Buttons */
         button { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; border-radius: var(--radius); cursor: pointer; width: 100%; transition: opacity 0.2s; border: none; padding: 14px 20px; box-shadow: none; }
         button:active { opacity: 0.7; }
         
@@ -99,12 +98,10 @@
         
         .secondary { background: var(--border-light); color: var(--text-bold); }
         
-        /* Blurred Overlays & Centered Alignment */
+        /* High-Opacity Washout (Safe for Mobile GPUs) */
         #modal-overlay, #custom-dialog-overlay, #info-dialog-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.4); 
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.85); 
             z-index: 200; 
             align-items: center; 
             justify-content: center; 
@@ -127,4 +124,278 @@
         .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-light); text-align: left; }
         .info-row:last-of-type { border-bottom: none; }
         .info-label { font-size: 14px; color: var(--text-light); font-weight: 600; }
-        .info-value { font-size: 14px; color: var(--text-bold); font-family:
+        .info-value { font-size: 14px; color: var(--text-bold); font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <div id="dashboard-view">
+        <div class="brand-header">Battery Vault</div>
+        
+        <div class="filter-bar">
+            <select id="filter-cells" class="filter-select" onchange="applyFilters()">
+                <option value="All">All Cellcounts</option>
+                <option value="1S">1S Packs</option>
+                <option value="2S">2S Packs</option>
+                <option value="3S">3S Packs</option>
+                <option value="4S">4S Packs</option>
+                <option value="6S">6S Packs</option>
+                <option value="8S">8S Packs</option>
+            </select>
+            <select id="filter-type" class="filter-select" onchange="applyFilters()">
+                <option value="All">All Chemistries</option>
+                <option value="LiPo">LiPo</option>
+                <option value="LiHV">LiHV</option>
+                <option value="LiUHV">LiUHV</option>
+                <option value="Li-ion">Li-ion</option>
+            </select>
+        </div>
+
+        <div id="list-container"></div>
+        <div class="fab-container">
+            <button class="fab-secondary" onclick="openManualAdd()">Add Manually</button>
+            <button class="fab" onclick="openScanner()">Scan Label</button>
+        </div>
+    </div>
+
+    <div id="scanner-view">
+        <h2 style="text-align: center; margin-bottom: 20px;">Scanning...</h2>
+        <div id="reader-container" onclick="prodAutofocus()">
+            <div id="reader"></div>
+        </div>
+        <button class="secondary" onclick="closeScanner()">Cancel</button>
+    </div>
+
+    <div id="modal-overlay">
+        <div class="modal-content" style="padding-top: 32px;">
+            <div class="close-x" onclick="closeModal()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </div>
+            
+            <h3 id="modal-title" style="margin-top: 0; margin-bottom: 4px;">Register Battery</h3>
+            <p id="scanned-id" style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;"></p>
+            
+            <div id="new-battery-form">
+                <input type="text" id="battery-name" placeholder="Name (e.g. Tattu R-Line)" oninput="this.classList.remove('error')">
+                
+                <div class="form-row">
+                    <select id="battery-cells">
+                        <option value="1S">1S</option>
+                        <option value="2S">2S</option>
+                        <option value="3S">3S</option>
+                        <option value="4S" selected>4S</option>
+                        <option value="6S">6S</option>
+                        <option value="8S">8S</option>
+                    </select>
+                    <select id="battery-type">
+                        <option value="LiPo">LiPo</option>
+                        <option value="LiHV">LiHV</option>
+                        <option value="LiUHV">LiUHV</option>
+                        <option value="Li-ion">Li-ion</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <input type="number" id="battery-capacity" placeholder="Capacity (mAh)" oninput="this.classList.remove('error')">
+                    <input type="number" id="battery-cycles-input" placeholder="Cycles" min="0" oninput="this.classList.remove('error')">
+                </div>
+
+                <button onclick="saveBatteryDetails()" style="background: var(--brand); color: #fff; margin-top: 16px;">Save Battery</button>
+            </div>
+
+            <div id="existing-battery-actions" style="display: none;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; margin-top: 8px; flex-wrap: wrap;">
+                    <h2 id="display-name" style="margin: 0; font-size: 20px;"></h2>
+                    <div class="badge-row" id="display-badges"></div>
+                </div>
+                
+                <p style="color: var(--text-light); margin-bottom: 24px;">Current Cycles: <strong id="display-cycles" style="font-size: 36px; color: var(--brand); display: block; margin-top: 8px;">0</strong></p>
+                
+                <button onclick="addCycleFromScan()" style="background: var(--brand); color: #fff; margin-bottom: 12px;">+1 Cycle</button>
+                <button class="secondary" onclick="triggerEdit(currentScannedId)">Edit</button>
+            </div>
+            
+        </div>
+    </div>
+
+    <div id="custom-dialog-overlay">
+        <div id="delete-dialog" class="modal-content">
+            <h3 style="margin-bottom: 8px; margin-top: 0;">Delete Battery</h3>
+            <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">Are you sure you want to remove this battery from your vault?</p>
+            <div class="card-actions" style="margin-top: 0; padding-top: 0; border: none;">
+                <button class="btn-small btn-neutral" onclick="closeDeleteDialog()">Cancel</button>
+                <button class="btn-small btn-danger-solid" onclick="confirmDelete()">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="info-dialog-overlay">
+        <div class="modal-content" style="padding-top: 32px;">
+            <div class="close-x" onclick="closeInfoDialog()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </div>
+            <h3 style="margin-bottom: 20px; margin-top: 0;">Battery Info</h3>
+            
+            <div class="info-row">
+                <span class="info-label">Battery ID</span>
+                <span class="info-value" id="info-val-id">---</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Date Added</span>
+                <span class="info-value" style="font-family: 'Inter', sans-serif;" id="info-val-date">---</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let batteryDb = {};
+        try {
+            const storedRawData = localStorage.getItem('fpvBatteries');
+            if (storedRawData) {
+                const parsed = JSON.parse(storedRawData);
+                if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+                    batteryDb = parsed;
+                }
+            }
+        } catch (error) {
+            console.error("Recovered from corrupt database file.");
+            batteryDb = {};
+        }
+
+        let currentScannedId = null;
+        let editingBatteryId = null; 
+        let pendingDeleteId = null; 
+        let html5QrCode = null;
+        
+        let filterCellState = 'All';
+        let filterTypeState = 'All';
+
+        // Prevents HTML injection and escaping errors
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function generateId() {
+            return 'manual_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        function getTodayString() {
+            return new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        async function prodAutofocus() {
+            try {
+                const videoElement = document.querySelector('#reader video');
+                if (videoElement && videoElement.srcObject) {
+                    const track = videoElement.srcObject.getVideoTracks()[0];
+                    await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
+                }
+            } catch (error) {}
+        }
+
+        function applyFilters() {
+            const cellSelect = document.getElementById('filter-cells');
+            const typeSelect = document.getElementById('filter-type');
+            
+            filterCellState = cellSelect.value;
+            filterTypeState = typeSelect.value;
+            
+            if (filterCellState !== 'All') cellSelect.classList.add('active-filter');
+            else cellSelect.classList.remove('active-filter');
+            
+            if (filterTypeState !== 'All') typeSelect.classList.add('active-filter');
+            else typeSelect.classList.remove('active-filter');
+            
+            renderList();
+        }
+
+        function openManualAdd() {
+            currentScannedId = generateId(); 
+            editingBatteryId = null; 
+            
+            document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('scanned-id').innerText = "ID: " + currentScannedId;
+            document.getElementById('scanned-id').style.display = 'block';
+            document.getElementById('modal-title').innerText = "Add Battery Manually";
+            
+            document.getElementById('existing-battery-actions').style.display = 'none';
+            document.getElementById('new-battery-form').style.display = 'block';
+            
+            const nameInput = document.getElementById('battery-name');
+            const capInput = document.getElementById('battery-capacity');
+            const cyclesInput = document.getElementById('battery-cycles-input');
+            
+            nameInput.value = '';
+            capInput.value = '';
+            cyclesInput.value = '';
+            
+            nameInput.classList.remove('error');
+            capInput.classList.remove('error');
+            cyclesInput.classList.remove('error');
+        }
+
+        function openScanner() {
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('scanner-view').style.display = 'block';
+            
+            try {
+                if (html5QrCode) {
+                    html5QrCode.clear();
+                }
+            } catch(e) {}
+            
+            html5QrCode = new Html5Qrcode("reader");
+            
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 15, qrbox: { width: 280, height: 200 } },
+                (decodedText) => {
+                    closeScanner(); 
+                    handleScanResult(decodedText);
+                },
+                (errorMessage) => {}
+            ).then(() => {
+                setTimeout(prodAutofocus, 1500);
+            }).catch(err => {
+                alert("Camera access denied or failed.");
+                closeScanner();
+            });
+        }
+
+        function closeScanner() {
+            if (html5QrCode) {
+                try {
+                    html5QrCode.stop().then(() => {
+                        html5QrCode.clear();
+                        resetViews();
+                    }).catch(() => {
+                        resetViews();
+                    });
+                } catch(e) {
+                    resetViews();
+                }
+            } else {
+                resetViews();
+            }
+        }
+        
+        function resetViews() {
+            document.getElementById('scanner-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'block';
+        }
+
+        function handleScanResult(decodedText) {
+            currentScannedId = decodedText;
+            editingBatteryId = null;
