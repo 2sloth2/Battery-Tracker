@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -31,18 +30,31 @@
         .fab-container { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; }
         .fab { box-shadow: 0 10px 20px rgba(0,0,0,0.5); font-size: 18px; padding: 18px; }
 
-        #reader { width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; margin-bottom: 20px; }
+        /* Scanner Screen */
+        #reader-container { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; margin-bottom: 20px; border: 1px solid var(--border); }
+        #reader { width: 100%; }
+        .scanner-hint { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; color: #fff; font-size: 14px; font-weight: 600; background: rgba(0,0,0,0.6); padding: 8px; pointer-events: none; }
         
+        /* Battery Cards */
         .battery-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
         .card-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .card-header:active { background: #1a1a1a; }
-        .battery-name { font-weight: 600; color: var(--text-bold); font-size: 16px; }
-        .cycle-badge { background: #222; color: var(--text-light); padding: 6px 12px; border-radius: 20px; font-size: 14px; border: 1px solid var(--border); }
+        .battery-name { font-weight: 600; color: var(--text-bold); font-size: 16px; margin-bottom: 4px; }
+        .hint-text { font-size: 12px; color: #888888; }
+        .cycle-badge { background: #222; color: var(--text-light); padding: 6px 12px; border-radius: 20px; font-size: 14px; border: 1px solid var(--border); white-space: nowrap; }
         
+        /* Expandable Notes Area */
         .card-details { display: none; padding: 0 16px 16px 16px; border-top: 1px solid var(--border); margin-top: 8px; }
         textarea { width: 100%; background: #000; color: var(--text-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif; font-size: 14px; box-sizing: border-box; resize: vertical; min-height: 80px; margin-top: 12px; }
         textarea:focus { outline: none; border-color: #666; }
         
+        /* Action Buttons */
+        .action-row { display: flex; gap: 10px; margin-top: 12px; }
+        .btn-small { padding: 10px; font-size: 14px; margin-top: 0; flex: 1; }
+        .btn-edit { background: #222; color: #fff; border: 1px solid var(--border); }
+        .btn-danger { background: transparent; color: #ff4444; border: 1px solid #ff4444; }
+        
+        /* Modals */
         #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
         .modal-content { background: var(--surface); border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; }
         input { width: 100%; padding: 14px; margin: 16px 0; background: #000; color: var(--text-bold); border: 1px solid var(--border); border-radius: 8px; font-size: 16px; font-family: 'Inter', sans-serif; box-sizing: border-box; }
@@ -58,7 +70,10 @@
 
     <div id="scanner-view">
         <h2 style="text-align: center; margin-bottom: 20px;">Scanning...</h2>
-        <div id="reader"></div>
+        <div id="reader-container" onclick="prodAutofocus()">
+            <div id="reader"></div>
+            <div class="scanner-hint">Hold 10-15cm away • Tap to focus</div>
+        </div>
         <button class="secondary" onclick="closeScanner()">Cancel</button>
     </div>
 
@@ -86,7 +101,6 @@
         let batteryDb = JSON.parse(localStorage.getItem('fpvBatteries')) || {};
         let currentScannedId = null;
         let html5QrCode = null;
-        let focusInterval = null;
 
         async function prodAutofocus() {
             try {
@@ -95,7 +109,9 @@
                     const track = videoElement.srcObject.getVideoTracks()[0];
                     await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
                 }
-            } catch (error) {}
+            } catch (error) {
+                console.log("Hardware autofocus API not supported on this device.");
+            }
         }
 
         function openScanner() {
@@ -105,21 +121,21 @@
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start(
                 { facingMode: "environment" },
-                { fps: 15, qrbox: { width: 320, height: 200 } },
+                { fps: 15, qrbox: { width: 280, height: 200 } },
                 (decodedText) => {
                     closeScanner(); 
                     handleScanResult(decodedText);
                 }
-            ).then(() => {
-                focusInterval = setInterval(prodAutofocus, 2000);
-            }).catch(err => {
+            ).catch(err => {
                 alert("Camera access denied or failed.");
                 closeScanner();
             });
+            
+            // Initial focus prod after a slight delay to ensure stream is active
+            setTimeout(prodAutofocus, 1500);
         }
 
         function closeScanner() {
-            if (focusInterval) clearInterval(focusInterval);
             if (html5QrCode) {
                 html5QrCode.stop().then(() => {
                     document.getElementById('scanner-view').style.display = 'none';
@@ -180,221 +196,20 @@
             localStorage.setItem('fpvBatteries', JSON.stringify(batteryDb));
         }
 
-        function saveAndRefresh() {
-            localStorage.setItem('fpvBatteries', JSON.stringify(batteryDb));
-            renderList();
-        }
-
-        function renderList() {
-            const container = document.getElementById('list-container');
-            container.innerHTML = '';
-            
-            const entries = Object.entries(batteryDb);
-            if(entries.length === 0) {
-                container.innerHTML = '<p style="color: #666; text-align: center; margin-top: 40px;">No batteries scanned yet.</p>';
-                return;
-            }
-
-            for (const [id, bat] of entries) {
-                const noteText = bat.notes || "";
-                container.innerHTML += `
-                    <div class="battery-card">
-                        <div class="card-header" onclick="toggleCard('${id}')">
-                            <span class="battery-name">${bat.name}</span>
-                            <span class="cycle-badge">${bat.cycles} Cycles</span>
-                        </div>
-                        <div class="card-details" id="details-${id}">
-                            <textarea placeholder="Log IR readings, punch-out feel, or crash history here..." 
-                                      oninput="saveNote('${id}', this.value)">${noteText}</textarea>
-                        </div>
-                    </div>
-                `;
+        function editBattery(id) {
+            const currentName = batteryDb[id].name;
+            const newName = prompt("Enter a new name for this battery:", currentName);
+            if (newName && newName.trim() !== "") {
+                batteryDb[id].name = newName.trim();
+                saveAndRefresh();
             }
         }
 
-        renderList();
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
-    
-    <link rel="manifest" href='data:application/manifest+json,{"name":"FPV Battery Cache","short_name":"Battery Cache","display":"standalone","background_color":"#000000","theme_color":"#000000"}'>
-    
-    <title>FPV Battery Cache</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
-    
-    <style>
-        :root { --bg: #000000; --surface: #111111; --border: #333333; --text-light: #cccccc; --text-bold: #ffffff; --primary: #ffffff; --radius: 12px; }
-        body { font-family: 'Inter', sans-serif; font-weight: 300; background-color: var(--bg); color: var(--text-light); margin: 0; padding: 20px; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
-        h1, h2, h3, strong { font-weight: 600; color: var(--text-bold); margin-top: 0; letter-spacing: -0.5px; }
-        
-        #scanner-view, #modal-overlay { display: none; }
-        
-        button { background: var(--primary); color: #000; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; border-radius: var(--radius); cursor: pointer; width: 100%; transition: opacity 0.2s; }
-        button:active { opacity: 0.7; }
-        button.secondary { background: transparent; color: var(--text-bold); border: 1px solid var(--border); }
-        
-        .fab-container { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; }
-        .fab { box-shadow: 0 10px 20px rgba(0,0,0,0.5); font-size: 18px; padding: 18px; }
-
-        #reader { width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; margin-bottom: 20px; }
-        
-        .battery-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
-        .card-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .card-header:active { background: #1a1a1a; }
-        .battery-name { font-weight: 600; color: var(--text-bold); font-size: 16px; }
-        .cycle-badge { background: #222; color: var(--text-light); padding: 6px 12px; border-radius: 20px; font-size: 14px; border: 1px solid var(--border); }
-        
-        .card-details { display: none; padding: 0 16px 16px 16px; border-top: 1px solid var(--border); margin-top: 8px; }
-        textarea { width: 100%; background: #000; color: var(--text-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif; font-size: 14px; box-sizing: border-box; resize: vertical; min-height: 80px; margin-top: 12px; }
-        textarea:focus { outline: none; border-color: #666; }
-        
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
-        .modal-content { background: var(--surface); border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; }
-        input { width: 100%; padding: 14px; margin: 16px 0; background: #000; color: var(--text-bold); border: 1px solid var(--border); border-radius: 8px; font-size: 16px; font-family: 'Inter', sans-serif; box-sizing: border-box; }
-    </style>
-</head>
-<body>
-
-    <div id="dashboard-view">
-        <h2 style="margin-bottom: 24px;">Battery Cache</h2>
-        <div id="list-container"></div>
-        <div class="fab-container"><button class="fab" onclick="openScanner()">📷 Scan Label</button></div>
-    </div>
-
-    <div id="scanner-view">
-        <h2 style="text-align: center; margin-bottom: 20px;">Scanning...</h2>
-        <div id="reader"></div>
-        <button class="secondary" onclick="closeScanner()">Cancel</button>
-    </div>
-
-    <div id="modal-overlay">
-        <div class="modal-content">
-            <h3 id="status-title">Label Detected</h3>
-            <p id="scanned-id" style="font-size: 12px; color: #666; margin-bottom: 16px;"></p>
-            
-            <div id="new-battery-form">
-                <input type="text" id="battery-name" placeholder="e.g. Tattu 850 #1">
-                <button onclick="registerNewBattery()">Save Battery</button>
-            </div>
-
-            <div id="existing-battery-actions">
-                <h2 id="display-name" style="margin-bottom: 8px;"></h2>
-                <p>Cycles: <strong id="display-cycles" style="font-size: 28px;">0</strong></p>
-                <button onclick="addCycle()" style="margin-bottom: 12px;">+ Add 1 Charge Cycle</button>
-            </div>
-            
-            <button class="secondary" style="margin-top: 12px;" onclick="closeModal()">Close</button>
-        </div>
-    </div>
-
-    <script>
-        let batteryDb = JSON.parse(localStorage.getItem('fpvBatteries')) || {};
-        let currentScannedId = null;
-        let html5QrCode = null;
-        let focusInterval = null;
-
-        async function prodAutofocus() {
-            try {
-                const videoElement = document.querySelector('#reader video');
-                if (videoElement && videoElement.srcObject) {
-                    const track = videoElement.srcObject.getVideoTracks()[0];
-                    await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
-                }
-            } catch (error) {}
-        }
-
-        function openScanner() {
-            document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('scanner-view').style.display = 'block';
-            
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 15, qrbox: { width: 320, height: 200 } },
-                (decodedText) => {
-                    closeScanner(); 
-                    handleScanResult(decodedText);
-                }
-            ).then(() => {
-                focusInterval = setInterval(prodAutofocus, 2000);
-            }).catch(err => {
-                alert("Camera access denied or failed.");
-                closeScanner();
-            });
-        }
-
-        function closeScanner() {
-            if (focusInterval) clearInterval(focusInterval);
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    document.getElementById('scanner-view').style.display = 'none';
-                    document.getElementById('dashboard-view').style.display = 'block';
-                }).catch(() => {
-                    document.getElementById('scanner-view').style.display = 'none';
-                    document.getElementById('dashboard-view').style.display = 'block';
-                });
-            } else {
-                document.getElementById('scanner-view').style.display = 'none';
-                document.getElementById('dashboard-view').style.display = 'block';
+        function deleteBattery(id) {
+            if (confirm(`Are you sure you want to delete "${batteryDb[id].name}"? This action cannot be undone.`)) {
+                delete batteryDb[id];
+                saveAndRefresh();
             }
-        }
-
-        function handleScanResult(decodedText) {
-            currentScannedId = decodedText;
-            document.getElementById('modal-overlay').style.display = 'flex';
-            document.getElementById('scanned-id').innerText = "ID: " + decodedText;
-
-            if (batteryDb[currentScannedId]) {
-                document.getElementById('new-battery-form').style.display = 'none';
-                document.getElementById('existing-battery-actions').style.display = 'block';
-                document.getElementById('display-name').innerText = batteryDb[currentScannedId].name;
-                document.getElementById('display-cycles').innerText = batteryDb[currentScannedId].cycles;
-            } else {
-                document.getElementById('existing-battery-actions').style.display = 'none';
-                document.getElementById('new-battery-form').style.display = 'block';
-                document.getElementById('battery-name').value = '';
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('modal-overlay').style.display = 'none';
-            currentScannedId = null;
-        }
-
-        function registerNewBattery() {
-            const name = document.getElementById('battery-name').value;
-            if (!name) return alert("Please enter a name!");
-            batteryDb[currentScannedId] = { name: name, cycles: 0, notes: "" };
-            saveAndRefresh();
-            handleScanResult(currentScannedId); 
-        }
-
-        function addCycle() {
-            batteryDb[currentScannedId].cycles += 1;
-            saveAndRefresh();
-            handleScanResult(currentScannedId); 
-        }
-
-        function toggleCard(id) {
-            const detailsDiv = document.getElementById(`details-${id}`);
-            detailsDiv.style.display = detailsDiv.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function saveNote(id, text) {
-            batteryDb[id].notes = text;
-            localStorage.setItem('fpvBatteries', JSON.stringify(batteryDb));
         }
 
         function saveAndRefresh() {
@@ -417,12 +232,19 @@
                 container.innerHTML += `
                     <div class="battery-card">
                         <div class="card-header" onclick="toggleCard('${id}')">
-                            <span class="battery-name">${bat.name}</span>
+                            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                                <span class="battery-name">${bat.name}</span>
+                                <span class="hint-text">▼ Tap for notes & options</span>
+                            </div>
                             <span class="cycle-badge">${bat.cycles} Cycles</span>
                         </div>
                         <div class="card-details" id="details-${id}">
-                            <textarea placeholder="Log IR readings, punch-out feel, or crash history here..." 
+                            <textarea placeholder="Log IR readings (e.g. 3.2mΩ), punch-out feel, or crash history here..." 
                                       oninput="saveNote('${id}', this.value)">${noteText}</textarea>
+                            <div class="action-row">
+                                <button class="btn-small btn-edit" onclick="editBattery('${id}')">Rename</button>
+                                <button class="btn-small btn-danger" onclick="deleteBattery('${id}')">Delete</button>
+                            </div>
                         </div>
                     </div>
                 `;
