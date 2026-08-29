@@ -5,67 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#f5f5f7">
     
-    <!-- Link to the new external manifest file -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href='data:application/manifest+json,%7B%22name%22%3A%22FPV%20Battery%20Cache%22%2C%22short_name%22%3A%22Battery%20Cache%22%2C%22display%22%3A%22fullscreen%22%2C%22start_url%22%3A%22.%22%2C%22background_color%22%3A%22%23f5f5f7%22%2C%22theme_color%22%3A%22%23f5f5f7%22%7D'>
     
     <title>FPV Battery Cache</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     
     <style>
-        :root { --bg: #000000; --surface: #111111; --border: #333333; --text-light: #cccccc; --text-bold: #ffffff; --primary: #ffffff; --radius: 12px; }
-        body { font-family: 'Inter', sans-serif; font-weight: 300; background-color: var(--bg); color: var(--text-light); margin: 0; padding: 20px; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
-        h1, h2, h3, strong { font-weight: 600; color: var(--text-bold); margin-top: 0; letter-spacing: -0.5px; }
+        :root { 
+            --bg: #f5f5f7; 
+            --surface: #ffffff; 
+            --text-bold: #1d1d1f; 
+            --text-light: #515154; 
+            --primary: #0071e3; 
+            --primary-text: #ffffff;
+            --danger: #ff3b30;
+            --input-bg: #f5f5f7;
+            --radius: 16px; 
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-bold); margin: 0; padding: 20px; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
+        h1, h2, h3, strong { font-weight: 600; margin-top: 0; letter-spacing: -0.3px; }
         
         #scanner-view, #modal-overlay, #custom-dialog-overlay { display: none; }
         
-        button { background: var(--primary); color: #000; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; border-radius: var(--radius); cursor: pointer; width: 100%; transition: opacity 0.2s; }
+        button { background: var(--primary); color: var(--primary-text); border: none; padding: 14px 20px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; border-radius: var(--radius); cursor: pointer; width: 100%; transition: opacity 0.2s; }
         button:active { opacity: 0.7; }
-        button.secondary { background: transparent; color: var(--text-bold); border: 1px solid var(--border); }
-        button.danger { background: #ff4444; color: #fff; border: none; }
+        button.secondary { background: #e5e5ea; color: var(--text-bold); }
+        button.danger { background: var(--danger); color: #fff; }
         
         .fab-container { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; }
-        .fab { box-shadow: 0 10px 20px rgba(0,0,0,0.5); font-size: 18px; padding: 18px; }
+        .fab { box-shadow: 0 4px 14px rgba(0,0,0,0.15); font-size: 18px; padding: 18px; }
 
-        #reader-container { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; margin-bottom: 20px; border: 1px solid var(--border); }
+        #reader-container { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; margin-bottom: 20px; }
         #reader { width: 100%; }
-        .scanner-hint { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; color: #fff; font-size: 14px; font-weight: 600; background: rgba(0,0,0,0.6); padding: 8px; pointer-events: none; }
+        .scanner-hint { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; color: #fff; font-size: 14px; font-weight: 600; background: rgba(0,0,0,0.5); padding: 8px; pointer-events: none; }
         
-        .battery-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
-        .card-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .card-header:active { background: #1a1a1a; }
+        .battery-card { background: var(--surface); border-radius: var(--radius); margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
+        .card-header { padding: 16px 16px 12px 16px; cursor: pointer; display: flex; flex-direction: column; }
+        .card-header:active { background: #f9f9f9; }
         
+        .card-top-row { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
         .battery-info-col { display: flex; flex-direction: column; align-items: flex-start; }
-        .battery-name { font-weight: 600; color: var(--text-bold); font-size: 16px; margin-bottom: 6px; }
+        .battery-name { font-weight: 600; font-size: 16px; margin-bottom: 6px; }
         
         .badge-row { display: flex; gap: 6px; flex-wrap: wrap; }
-        .spec-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: #222; border: 1px solid #444; color: #aaa; font-weight: 600; letter-spacing: 0.5px; }
+        .spec-badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: var(--bg); color: var(--text-light); font-weight: 600; }
+        .cycle-badge { background: var(--bg); color: var(--text-bold); padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; white-space: nowrap; }
         
-        .card-header-right { display: flex; align-items: center; gap: 12px; }
-        .cycle-badge { background: #222; color: var(--text-light); padding: 6px 12px; border-radius: 20px; font-size: 14px; border: 1px solid var(--border); white-space: nowrap; }
-        .chevron { border: solid #888; border-width: 0 2px 2px 0; display: inline-block; padding: 4px; transform: rotate(-45deg); transition: transform 0.2s ease; margin-right: 4px; }
-        .chevron.open { transform: rotate(45deg); }
+        .card-bottom-row { width: 100%; text-align: center; margin-top: 8px; height: 12px; }
+        .chevron { border: solid #c7c7cc; border-width: 0 2px 2px 0; display: inline-block; padding: 4px; transform: rotate(45deg); transition: transform 0.2s ease; }
+        .chevron.open { transform: rotate(-135deg); margin-top: 4px; }
         
-        .card-details { display: none; padding: 0 16px 16px 16px; border-top: 1px solid var(--border); margin-top: 12px; }
-        textarea { width: 100%; background: #000; color: var(--text-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif; font-size: 14px; box-sizing: border-box; resize: vertical; min-height: 80px; margin-top: 12px; }
-        textarea:focus { outline: none; border-color: #666; }
+        .card-details { display: none; padding: 0 16px 16px 16px; }
+        textarea { width: 100%; background: var(--input-bg); color: var(--text-bold); border: 1px solid transparent; border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif; font-size: 14px; box-sizing: border-box; resize: vertical; min-height: 80px; margin-top: 8px; }
+        textarea:focus { outline: none; border-color: #c7c7cc; }
         
         .action-row { display: flex; gap: 10px; margin-top: 12px; }
         .btn-small { padding: 10px; font-size: 14px; margin-top: 0; flex: 1; }
-        .btn-edit { background: #222; color: #fff; border: 1px solid var(--border); }
-        .btn-danger-outline { background: transparent; color: #ff4444; border: 1px solid #ff4444; }
+        .btn-edit { background: var(--bg); color: var(--text-bold); }
+        .btn-danger-outline { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
         
-        /* Modal adjusted to avoid keyboard overlay */
-        #modal-overlay, #custom-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; align-items: flex-start; justify-content: center; padding: 10vh 20px 20px 20px; box-sizing: border-box; overflow-y: auto; }
-        .modal-content { background: var(--surface); border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; margin-bottom: auto; }
+        #modal-overlay, #custom-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; align-items: flex-start; justify-content: center; padding: 10vh 20px 20px 20px; box-sizing: border-box; overflow-y: auto; }
+        .modal-content { background: var(--surface); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; margin-bottom: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        input, select { width: 100%; padding: 14px; margin-top: 12px; background: #000; color: var(--text-bold); border: 1px solid var(--border); border-radius: 8px; font-size: 16px; font-family: 'Inter', sans-serif; box-sizing: border-box; }
-        select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23cccccc%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 14px top 50%; background-size: 12px auto; padding-right: 40px; }
+        input, select { width: 100%; padding: 14px; margin-top: 12px; background: var(--input-bg); color: var(--text-bold); border: 1px solid transparent; border-radius: 8px; font-size: 16px; font-family: 'Inter', sans-serif; box-sizing: border-box; transition: border-color 0.2s; }
+        input.error, select.error { border-color: var(--danger); }
+        input:focus, select:focus { outline: none; border-color: #c7c7cc; }
+        
+        select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238e8e93%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 14px top 50%; background-size: 12px auto; padding-right: 40px; }
         
         .form-row { display: flex; gap: 10px; }
         .form-row select, .form-row input { flex: 1; }
@@ -76,7 +88,7 @@
 <body>
 
     <div id="dashboard-view">
-        <h2 style="margin-bottom: 24px;">Battery Cache</h2>
+        <h2 style="margin-bottom: 24px; text-align: center;">Battery Cache</h2>
         <div id="list-container"></div>
         <div class="fab-container"><button class="fab" onclick="openScanner()">Scan Label</button></div>
     </div>
@@ -93,10 +105,10 @@
     <div id="modal-overlay">
         <div class="modal-content">
             <h3 id="status-title">Label Detected</h3>
-            <p id="scanned-id" style="font-size: 12px; color: #666; margin-bottom: 8px;"></p>
+            <p id="scanned-id" style="font-size: 12px; color: var(--text-light); margin-bottom: 8px;"></p>
             
             <div id="new-battery-form">
-                <input type="text" id="battery-name" placeholder="Name (e.g. Tattu R-Line)">
+                <input type="text" id="battery-name" placeholder="Name (e.g. Tattu R-Line)" oninput="this.classList.remove('error')">
                 
                 <div class="form-row">
                     <select id="battery-cells">
@@ -115,13 +127,13 @@
                     </select>
                 </div>
                 
-                <input type="number" id="battery-capacity" placeholder="Capacity (mAh)">
+                <input type="number" id="battery-capacity" placeholder="Capacity (mAh)" oninput="this.classList.remove('error')">
                 <button onclick="registerNewBattery()" style="margin-top: 16px;">Save Battery</button>
             </div>
 
             <div id="existing-battery-actions">
                 <h2 id="display-name" style="margin-bottom: 8px;"></h2>
-                <p>Cycles: <strong id="display-cycles" style="font-size: 28px;">0</strong></p>
+                <p style="color: var(--text-light);">Cycles: <strong id="display-cycles" style="font-size: 28px; color: var(--text-bold);">0</strong></p>
                 <button onclick="addCycle()" style="margin-bottom: 12px;">+ Add 1 Charge Cycle</button>
             </div>
             
@@ -132,7 +144,7 @@
     <div id="custom-dialog-overlay">
         <div id="edit-dialog" class="modal-content">
             <h3 style="margin-bottom: 8px;">Rename Battery</h3>
-            <input type="text" id="edit-battery-name-input">
+            <input type="text" id="edit-battery-name-input" oninput="this.classList.remove('error')">
             <div class="action-row">
                 <button class="secondary btn-small" onclick="closeCustomDialogs()">Cancel</button>
                 <button class="btn-small" onclick="confirmEdit()">Save</button>
@@ -140,7 +152,7 @@
         </div>
         <div id="delete-dialog" class="modal-content">
             <h3 style="margin-bottom: 8px;">Delete Battery</h3>
-            <p style="font-size: 14px; margin-bottom: 20px;">Are you sure you want to remove this battery from your cache?</p>
+            <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">Are you sure you want to remove this battery from your cache?</p>
             <div class="action-row">
                 <button class="secondary btn-small" onclick="closeCustomDialogs()">Cancel</button>
                 <button class="danger btn-small" onclick="confirmDelete()">Remove</button>
@@ -209,8 +221,13 @@
             } else {
                 document.getElementById('existing-battery-actions').style.display = 'none';
                 document.getElementById('new-battery-form').style.display = 'block';
-                document.getElementById('battery-name').value = '';
-                document.getElementById('battery-capacity').value = '';
+                
+                const nameInput = document.getElementById('battery-name');
+                const capInput = document.getElementById('battery-capacity');
+                nameInput.value = '';
+                capInput.value = '';
+                nameInput.classList.remove('error');
+                capInput.classList.remove('error');
             }
         }
 
@@ -220,18 +237,29 @@
         }
 
         function registerNewBattery() {
-            const name = document.getElementById('battery-name').value;
+            const nameInput = document.getElementById('battery-name');
+            const capInput = document.getElementById('battery-capacity');
             const cells = document.getElementById('battery-cells').value;
             const type = document.getElementById('battery-type').value;
-            const capacity = document.getElementById('battery-capacity').value;
             
-            if (!name) return;
+            let isValid = true;
+            
+            if (!nameInput.value.trim()) {
+                nameInput.classList.add('error');
+                isValid = false;
+            }
+            if (!capInput.value.trim()) {
+                capInput.classList.add('error');
+                isValid = false;
+            }
+            
+            if (!isValid) return;
             
             batteryDb[currentScannedId] = { 
-                name: name, 
+                name: nameInput.value.trim(), 
                 cells: cells,
                 type: type,
-                capacity: capacity ? capacity + 'mAh' : 'N/A',
+                capacity: capInput.value.trim() + 'mAh',
                 cycles: 0, 
                 notes: "" 
             };
@@ -273,17 +301,24 @@
 
         function triggerEdit(id) {
             pendingActionId = id;
-            document.getElementById('edit-battery-name-input').value = batteryDb[id].name;
+            const input = document.getElementById('edit-battery-name-input');
+            input.value = batteryDb[id].name;
+            input.classList.remove('error');
             document.getElementById('custom-dialog-overlay').style.display = 'flex';
             document.getElementById('edit-dialog').style.display = 'block';
         }
 
         function confirmEdit() {
-            const newName = document.getElementById('edit-battery-name-input').value;
-            if (newName && newName.trim() !== "") {
-                batteryDb[pendingActionId].name = newName.trim();
-                saveAndRefresh();
+            const input = document.getElementById('edit-battery-name-input');
+            const newName = input.value.trim();
+            
+            if (!newName) {
+                input.classList.add('error');
+                return;
             }
+            
+            batteryDb[pendingActionId].name = newName;
+            saveAndRefresh();
             closeCustomDialogs();
         }
 
@@ -310,7 +345,7 @@
             
             const entries = Object.entries(batteryDb);
             if(entries.length === 0) {
-                container.innerHTML = '<p style="color: #666; text-align: center; margin-top: 40px;">No batteries scanned yet.</p>';
+                container.innerHTML = '<p style="color: var(--text-light); text-align: center; margin-top: 40px;">No batteries scanned yet.</p>';
                 return;
             }
 
@@ -328,12 +363,14 @@
                 container.innerHTML += `
                     <div class="battery-card">
                         <div class="card-header" onclick="toggleCard('${id}')">
-                            <div class="battery-info-col">
-                                <span class="battery-name">${bat.name}</span>
-                                ${badgeHtml}
-                            </div>
-                            <div class="card-header-right">
+                            <div class="card-top-row">
+                                <div class="battery-info-col">
+                                    <span class="battery-name">${bat.name}</span>
+                                    ${badgeHtml}
+                                </div>
                                 <span class="cycle-badge">${bat.cycles} Cycles</span>
+                            </div>
+                            <div class="card-bottom-row">
                                 <i class="chevron" id="chevron-${id}"></i>
                             </div>
                         </div>
