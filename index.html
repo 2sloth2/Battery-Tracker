@@ -25,11 +25,11 @@
             --text-light: #515154; 
             --brand: #151136; 
             --primary-text: #ffffff;
-            --danger: #7a121f; /* Much darker, stealthy crimson red */
+            --danger: #7a121f; 
             --input-bg: #f5f5f7;
             --radius: 16px; 
         }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-bold); margin: 0; padding: 20px; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-bold); margin: 0; padding: 20px; padding-bottom: 140px; -webkit-tap-highlight-color: transparent; }
         
         .brand-header {
             font-family: 'Orbitron', sans-serif;
@@ -51,8 +51,9 @@
         button.secondary { background: #e5e5ea; color: var(--text-bold); }
         button.danger { background: var(--danger); color: #fff; }
         
-        .fab-container { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; }
+        .fab-container { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; gap: 10px; }
         .fab { background: var(--brand); color: var(--primary-text); box-shadow: 0 4px 14px rgba(0,0,0,0.15); font-size: 18px; padding: 18px; font-family: 'Orbitron', sans-serif; letter-spacing: 0.5px; }
+        .fab-secondary { background: var(--surface); color: var(--text-bold); box-shadow: 0 4px 14px rgba(0,0,0,0.08); font-size: 16px; padding: 14px; border: 1px solid #e5e5ea; }
 
         #reader-container { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; margin-bottom: 20px; }
         #reader { width: 100%; }
@@ -67,7 +68,7 @@
         
         .badge-row { display: flex; gap: 6px; flex-wrap: wrap; }
         .spec-badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: var(--bg); color: var(--text-light); font-weight: 600; }
-        .cycle-badge { background: var(--bg); color: var(--text-bold); padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+        .cycle-badge { background: var(--bg); color: var(--text-bold); padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; white-space: nowrap; margin-bottom: 6px; display: inline-block; text-align: center; width: 100%; box-sizing: border-box; }
         
         .card-bottom-row { width: 100%; text-align: center; margin-top: 8px; height: 12px; }
         .chevron { border: solid #c7c7cc; border-width: 0 2px 2px 0; display: inline-block; padding: 4px; transform: rotate(45deg); transition: transform 0.2s ease; }
@@ -77,10 +78,15 @@
         textarea { width: 100%; background: var(--input-bg); color: var(--text-bold); border: 1px solid transparent; border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif; font-size: 14px; box-sizing: border-box; resize: vertical; min-height: 80px; margin-top: 8px; }
         textarea:focus { outline: none; border-color: #c7c7cc; }
         
+        /* Sharper border radius for card-specific action buttons */
         .action-row { display: flex; gap: 10px; margin-top: 12px; }
-        .btn-small { padding: 10px; font-size: 14px; margin-top: 0; flex: 1; }
+        .btn-small { padding: 10px; font-size: 14px; margin-top: 0; flex: 1; border-radius: 8px; }
         .btn-edit { background: var(--bg); color: var(--text-bold); }
         .btn-danger-solid { background: var(--danger); color: #fff; }
+        
+        /* Dedicated quick-cycle button on the front of the card */
+        .cycle-btn { background: var(--brand); color: var(--primary-text); border: none; padding: 6px 12px; font-size: 13px; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600; width: 100%; }
+        .cycle-btn:active { opacity: 0.7; }
         
         #modal-overlay, #custom-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; align-items: flex-start; justify-content: center; padding: 10vh 20px 20px 20px; box-sizing: border-box; overflow-y: auto; }
         .modal-content { background: var(--surface); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; margin-bottom: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
@@ -100,7 +106,10 @@
     <div id="dashboard-view">
         <div class="brand-header">Battery Vault</div>
         <div id="list-container"></div>
-        <div class="fab-container"><button class="fab" onclick="openScanner()">Scan Label</button></div>
+        <div class="fab-container">
+            <button class="fab-secondary" onclick="openManualAdd()">Add Manually</button>
+            <button class="fab" onclick="openScanner()">Scan Label</button>
+        </div>
     </div>
 
     <div id="scanner-view">
@@ -147,7 +156,7 @@
             <div id="existing-battery-actions">
                 <h2 id="display-name" style="margin-bottom: 8px;"></h2>
                 <p style="color: var(--text-light); margin-bottom: 24px;">Cycles: <strong id="display-cycles" style="font-size: 28px; color: var(--text-bold);">0</strong></p>
-                <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">Battery recognized. Tap the chevron on the dashboard card to add cycles or edit details.</p>
+                <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">Battery recognized. Close this window to view it on your dashboard.</p>
             </div>
             
             <button class="secondary" style="margin-top: 12px;" onclick="closeModal()">Close</button>
@@ -172,6 +181,10 @@
         let pendingDeleteId = null; 
         let html5QrCode = null;
 
+        function generateId() {
+            return 'manual_' + Math.random().toString(36).substr(2, 9);
+        }
+
         async function prodAutofocus() {
             try {
                 const videoElement = document.querySelector('#reader video');
@@ -180,6 +193,30 @@
                     await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
                 }
             } catch (error) {}
+        }
+
+        function openManualAdd() {
+            currentScannedId = generateId(); 
+            editingBatteryId = null; 
+            
+            document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('scanned-id').innerText = "ID: " + currentScannedId;
+            document.getElementById('modal-title').innerText = "Add Battery Manually";
+            
+            document.getElementById('existing-battery-actions').style.display = 'none';
+            document.getElementById('new-battery-form').style.display = 'block';
+            
+            const nameInput = document.getElementById('battery-name');
+            const capInput = document.getElementById('battery-capacity');
+            const cyclesInput = document.getElementById('battery-cycles-input');
+            
+            nameInput.value = '';
+            capInput.value = '';
+            cyclesInput.value = '';
+            
+            nameInput.classList.remove('error');
+            capInput.classList.remove('error');
+            cyclesInput.classList.remove('error');
         }
 
         function openScanner() {
@@ -331,10 +368,13 @@
             }
             
             saveAndRefresh();
-            closeModal(); // Closes the modal directly upon saving
+            closeModal();
         }
 
-        function addCycleToId(id) {
+        function addCycleToId(event, id) {
+            // Prevent the card from expanding when the quick-add button is pressed
+            if (event) event.stopPropagation();
+            
             if(batteryDb[id]) {
                 batteryDb[id].cycles += 1;
                 saveAndRefresh();
@@ -411,7 +451,10 @@
                                     <span class="battery-name">${bat.name}</span>
                                     ${badgeHtml}
                                 </div>
-                                <span class="cycle-badge">${bat.cycles} Cycles</span>
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; width: 80px;">
+                                    <span class="cycle-badge">${bat.cycles} Cycles</span>
+                                    <button class="cycle-btn" onclick="addCycleToId(event, '${id}')">+1 Cycle</button>
+                                </div>
                             </div>
                             <div class="card-bottom-row">
                                 <i class="chevron" id="chevron-${id}"></i>
@@ -421,7 +464,6 @@
                             <textarea placeholder="Log IR readings (e.g. 3.2mΩ), punch-out feel, or crash history here..." 
                                       oninput="saveNote('${id}', this.value)">${noteText}</textarea>
                             <div class="action-row">
-                                <button class="btn-small" onclick="addCycleToId('${id}')">+1 Cycle</button>
                                 <button class="btn-small btn-edit" onclick="triggerEdit('${id}')">Edit</button>
                                 <button class="btn-small btn-danger-solid" onclick="triggerDelete('${id}')">Delete</button>
                             </div>
