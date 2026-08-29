@@ -68,7 +68,7 @@
         .action-row { display: flex; gap: 10px; margin-top: 12px; }
         .btn-small { padding: 10px; font-size: 14px; margin-top: 0; flex: 1; }
         .btn-edit { background: var(--bg); color: var(--text-bold); }
-        .btn-danger-outline { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+        .btn-danger-solid { background: var(--danger); color: #fff; }
         
         #modal-overlay, #custom-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; align-items: flex-start; justify-content: center; padding: 10vh 20px 20px 20px; box-sizing: border-box; overflow-y: auto; }
         .modal-content { background: var(--surface); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; margin-bottom: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
@@ -82,7 +82,7 @@
         .form-row { display: flex; gap: 10px; }
         .form-row select, .form-row input { flex: 1; }
         
-        #edit-dialog, #delete-dialog { display: none; }
+        #delete-dialog { display: none; }
     </style>
 </head>
 <body>
@@ -104,7 +104,7 @@
 
     <div id="modal-overlay">
         <div class="modal-content">
-            <h3 id="status-title">Label Detected</h3>
+            <h3 id="modal-title">Register Battery</h3>
             <p id="scanned-id" style="font-size: 12px; color: var(--text-light); margin-bottom: 8px;"></p>
             
             <div id="new-battery-form">
@@ -127,8 +127,12 @@
                     </select>
                 </div>
                 
-                <input type="number" id="battery-capacity" placeholder="Capacity (mAh)" oninput="this.classList.remove('error')">
-                <button onclick="registerNewBattery()" style="margin-top: 16px;">Save Battery</button>
+                <div class="form-row">
+                    <input type="number" id="battery-capacity" placeholder="Capacity (mAh)" oninput="this.classList.remove('error')">
+                    <input type="number" id="battery-cycles-input" placeholder="Initial Cycles" min="0" value="0" oninput="this.classList.remove('error')">
+                </div>
+
+                <button onclick="saveBatteryDetails()" style="margin-top: 16px;">Save Battery</button>
             </div>
 
             <div id="existing-battery-actions">
@@ -142,19 +146,11 @@
     </div>
 
     <div id="custom-dialog-overlay">
-        <div id="edit-dialog" class="modal-content">
-            <h3 style="margin-bottom: 8px;">Rename Battery</h3>
-            <input type="text" id="edit-battery-name-input" oninput="this.classList.remove('error')">
-            <div class="action-row">
-                <button class="secondary btn-small" onclick="closeCustomDialogs()">Cancel</button>
-                <button class="btn-small" onclick="confirmEdit()">Save</button>
-            </div>
-        </div>
         <div id="delete-dialog" class="modal-content">
             <h3 style="margin-bottom: 8px;">Delete Battery</h3>
             <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">Are you sure you want to remove this battery from your cache?</p>
             <div class="action-row">
-                <button class="secondary btn-small" onclick="closeCustomDialogs()">Cancel</button>
+                <button class="secondary btn-small" onclick="closeDeleteDialog()">Cancel</button>
                 <button class="danger btn-small" onclick="confirmDelete()">Remove</button>
             </div>
         </div>
@@ -163,7 +159,8 @@
     <script>
         let batteryDb = JSON.parse(localStorage.getItem('fpvBatteries')) || {};
         let currentScannedId = null;
-        let pendingActionId = null; 
+        let editingBatteryId = null; 
+        let pendingDeleteId = null; 
         let html5QrCode = null;
 
         async function prodAutofocus() {
@@ -210,8 +207,11 @@
 
         function handleScanResult(decodedText) {
             currentScannedId = decodedText;
+            editingBatteryId = null; 
+            
             document.getElementById('modal-overlay').style.display = 'flex';
             document.getElementById('scanned-id').innerText = "ID: " + decodedText;
+            document.getElementById('modal-title').innerText = "Register Battery";
 
             if (batteryDb[currentScannedId]) {
                 document.getElementById('new-battery-form').style.display = 'none';
@@ -224,48 +224,88 @@
                 
                 const nameInput = document.getElementById('battery-name');
                 const capInput = document.getElementById('battery-capacity');
+                const cyclesInput = document.getElementById('battery-cycles-input');
+                
                 nameInput.value = '';
                 capInput.value = '';
+                cyclesInput.value = '0';
+                
                 nameInput.classList.remove('error');
                 capInput.classList.remove('error');
+                cyclesInput.classList.remove('error');
             }
+        }
+
+        function triggerEdit(id) {
+            editingBatteryId = id;
+            const bat = batteryDb[id];
+            
+            document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('scanned-id').innerText = "ID: " + id;
+            document.getElementById('modal-title').innerText = "Edit Battery Specs";
+            
+            document.getElementById('existing-battery-actions').style.display = 'none';
+            document.getElementById('new-battery-form').style.display = 'block';
+            
+            const nameInput = document.getElementById('battery-name');
+            const capInput = document.getElementById('battery-capacity');
+            const cyclesInput = document.getElementById('battery-cycles-input');
+            
+            nameInput.value = bat.name;
+            document.getElementById('battery-cells').value = bat.cells || '4S';
+            document.getElementById('battery-type').value = bat.type || 'LiPo';
+            
+            let rawCap = bat.capacity ? bat.capacity.replace('mAh', '') : '';
+            capInput.value = rawCap === 'N/A' ? '' : rawCap;
+            cyclesInput.value = bat.cycles !== undefined ? bat.cycles : 0;
+            
+            nameInput.classList.remove('error');
+            capInput.classList.remove('error');
+            cyclesInput.classList.remove('error');
         }
 
         function closeModal() {
             document.getElementById('modal-overlay').style.display = 'none';
             currentScannedId = null;
+            editingBatteryId = null;
         }
 
-        function registerNewBattery() {
+        function saveBatteryDetails() {
             const nameInput = document.getElementById('battery-name');
             const capInput = document.getElementById('battery-capacity');
+            const cyclesInput = document.getElementById('battery-cycles-input');
             const cells = document.getElementById('battery-cells').value;
             const type = document.getElementById('battery-type').value;
             
             let isValid = true;
-            
-            if (!nameInput.value.trim()) {
-                nameInput.classList.add('error');
-                isValid = false;
-            }
-            if (!capInput.value.trim()) {
-                capInput.classList.add('error');
-                isValid = false;
-            }
-            
+            if (!nameInput.value.trim()) { nameInput.classList.add('error'); isValid = false; }
+            if (!capInput.value.trim()) { capInput.classList.add('error'); isValid = false; }
+            if (cyclesInput.value === '' || parseInt(cyclesInput.value) < 0) { cyclesInput.classList.add('error'); isValid = false; }
             if (!isValid) return;
             
-            batteryDb[currentScannedId] = { 
-                name: nameInput.value.trim(), 
-                cells: cells,
-                type: type,
-                capacity: capInput.value.trim() + 'mAh',
-                cycles: 0, 
-                notes: "" 
-            };
+            const targetId = editingBatteryId || currentScannedId;
+            const cycleCount = parseInt(cyclesInput.value);
+            
+            if (editingBatteryId) {
+                batteryDb[targetId].name = nameInput.value.trim();
+                batteryDb[targetId].cells = cells;
+                batteryDb[targetId].type = type;
+                batteryDb[targetId].capacity = capInput.value.trim() + 'mAh';
+                batteryDb[targetId].cycles = cycleCount;
+                closeModal();
+            } else {
+                batteryDb[targetId] = { 
+                    name: nameInput.value.trim(), 
+                    cells: cells,
+                    type: type,
+                    capacity: capInput.value.trim() + 'mAh',
+                    cycles: cycleCount, 
+                    notes: "" 
+                };
+                handleScanResult(targetId); 
+            }
             
             saveAndRefresh();
-            handleScanResult(currentScannedId); 
         }
 
         function addCycle() {
@@ -292,46 +332,22 @@
             localStorage.setItem('fpvBatteries', JSON.stringify(batteryDb));
         }
 
-        function closeCustomDialogs() {
+        function closeDeleteDialog() {
             document.getElementById('custom-dialog-overlay').style.display = 'none';
-            document.getElementById('edit-dialog').style.display = 'none';
             document.getElementById('delete-dialog').style.display = 'none';
-            pendingActionId = null;
-        }
-
-        function triggerEdit(id) {
-            pendingActionId = id;
-            const input = document.getElementById('edit-battery-name-input');
-            input.value = batteryDb[id].name;
-            input.classList.remove('error');
-            document.getElementById('custom-dialog-overlay').style.display = 'flex';
-            document.getElementById('edit-dialog').style.display = 'block';
-        }
-
-        function confirmEdit() {
-            const input = document.getElementById('edit-battery-name-input');
-            const newName = input.value.trim();
-            
-            if (!newName) {
-                input.classList.add('error');
-                return;
-            }
-            
-            batteryDb[pendingActionId].name = newName;
-            saveAndRefresh();
-            closeCustomDialogs();
+            pendingDeleteId = null;
         }
 
         function triggerDelete(id) {
-            pendingActionId = id;
+            pendingDeleteId = id;
             document.getElementById('custom-dialog-overlay').style.display = 'flex';
             document.getElementById('delete-dialog').style.display = 'block';
         }
 
         function confirmDelete() {
-            delete batteryDb[pendingActionId];
+            delete batteryDb[pendingDeleteId];
             saveAndRefresh();
-            closeCustomDialogs();
+            closeDeleteDialog();
         }
 
         function saveAndRefresh() {
@@ -378,8 +394,8 @@
                             <textarea placeholder="Log IR readings (e.g. 3.2mΩ), punch-out feel, or crash history here..." 
                                       oninput="saveNote('${id}', this.value)">${noteText}</textarea>
                             <div class="action-row">
-                                <button class="btn-small btn-edit" onclick="triggerEdit('${id}')">Rename</button>
-                                <button class="btn-small btn-danger-outline" onclick="triggerDelete('${id}')">Delete</button>
+                                <button class="btn-small btn-edit" onclick="triggerEdit('${id}')">Edit</button>
+                                <button class="btn-small btn-danger-solid" onclick="triggerDelete('${id}')">Delete</button>
                             </div>
                         </div>
                     </div>
