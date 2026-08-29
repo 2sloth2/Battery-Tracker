@@ -8,7 +8,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     
-    <link rel="manifest" href='data:application/manifest+json,%7B%22name%22%3A%22FPV%20Battery%20Cache%22%2C%22short_name%22%3A%22Battery%20Cache%22%2C%22display%22%3A%22fullscreen%22%2C%22start_url%22%3A%22.%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D'>
+    <!-- Link to the new external manifest file -->
+    <link rel="manifest" href="manifest.json">
     
     <title>FPV Battery Cache</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -43,7 +44,6 @@
         .battery-name { font-weight: 600; color: var(--text-bold); font-size: 16px; margin-bottom: 6px; }
         
         .badge-row { display: flex; gap: 6px; flex-wrap: wrap; }
-        /* Adjusted border-radius from 4px to 20px for fully rounded swatches */
         .spec-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: #222; border: 1px solid #444; color: #aaa; font-weight: 600; letter-spacing: 0.5px; }
         
         .card-header-right { display: flex; align-items: center; gap: 12px; }
@@ -60,8 +60,9 @@
         .btn-edit { background: #222; color: #fff; border: 1px solid var(--border); }
         .btn-danger-outline { background: transparent; color: #ff4444; border: 1px solid #ff4444; }
         
-        #modal-overlay, #custom-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
-        .modal-content { background: var(--surface); border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; }
+        /* Modal adjusted to avoid keyboard overlay */
+        #modal-overlay, #custom-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; align-items: flex-start; justify-content: center; padding: 10vh 20px 20px 20px; box-sizing: border-box; overflow-y: auto; }
+        .modal-content { background: var(--surface); border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; margin-bottom: auto; }
         
         input, select { width: 100%; padding: 14px; margin-top: 12px; background: #000; color: var(--text-bold); border: 1px solid var(--border); border-radius: 8px; font-size: 16px; font-family: 'Inter', sans-serif; box-sizing: border-box; }
         select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23cccccc%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 14px top 50%; background-size: 12px auto; padding-right: 40px; }
