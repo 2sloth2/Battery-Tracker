@@ -12,9 +12,10 @@
     
     <title>FPV Battery Cache</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@600;900&display=swap" rel="stylesheet">
     
     <style>
         :root { 
@@ -22,24 +23,37 @@
             --surface: #ffffff; 
             --text-bold: #1d1d1f; 
             --text-light: #515154; 
-            --primary: #0071e3; 
+            --brand: #5c0f1e; /* Deep reddish-purple brand accent */
             --primary-text: #ffffff;
             --danger: #ff3b30;
             --input-bg: #f5f5f7;
             --radius: 16px; 
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-bold); margin: 0; padding: 20px; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
-        h1, h2, h3, strong { font-weight: 600; margin-top: 0; letter-spacing: -0.3px; }
+        
+        /* Sci-Fi Brand Header */
+        .brand-header {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 24px;
+            color: var(--brand);
+            text-align: center;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        h2, h3, strong { font-weight: 600; margin-top: 0; letter-spacing: -0.3px; }
         
         #scanner-view, #modal-overlay, #custom-dialog-overlay { display: none; }
         
-        button { background: var(--primary); color: var(--primary-text); border: none; padding: 14px 20px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; border-radius: var(--radius); cursor: pointer; width: 100%; transition: opacity 0.2s; }
+        button { background: var(--brand); color: var(--primary-text); border: none; padding: 14px 20px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; border-radius: var(--radius); cursor: pointer; width: 100%; transition: opacity 0.2s; }
         button:active { opacity: 0.7; }
         button.secondary { background: #e5e5ea; color: var(--text-bold); }
         button.danger { background: var(--danger); color: #fff; }
         
         .fab-container { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; }
-        .fab { box-shadow: 0 4px 14px rgba(0,0,0,0.15); font-size: 18px; padding: 18px; }
+        .fab { background: var(--brand); color: var(--primary-text); box-shadow: 0 4px 14px rgba(0,0,0,0.15); font-size: 18px; padding: 18px; font-family: 'Orbitron', sans-serif; letter-spacing: 0.5px; }
 
         #reader-container { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; margin-bottom: 20px; }
         #reader { width: 100%; }
@@ -88,7 +102,7 @@
 <body>
 
     <div id="dashboard-view">
-        <h2 style="margin-bottom: 24px; text-align: center;">Battery Cache</h2>
+        <div class="brand-header">Battery Cache</div>
         <div id="list-container"></div>
         <div class="fab-container"><button class="fab" onclick="openScanner()">Scan Label</button></div>
     </div>
@@ -129,7 +143,7 @@
                 
                 <div class="form-row">
                     <input type="number" id="battery-capacity" placeholder="Capacity (mAh)" oninput="this.classList.remove('error')">
-                    <input type="number" id="battery-cycles-input" placeholder="Initial Cycles" min="0" value="0" oninput="this.classList.remove('error')">
+                    <input type="number" id="battery-cycles-input" placeholder="Cycles" min="0" oninput="this.classList.remove('error')">
                 </div>
 
                 <button onclick="saveBatteryDetails()" style="margin-top: 16px;">Save Battery</button>
@@ -228,7 +242,7 @@
                 
                 nameInput.value = '';
                 capInput.value = '';
-                cyclesInput.value = '0';
+                cyclesInput.value = '';
                 
                 nameInput.classList.remove('error');
                 capInput.classList.remove('error');
@@ -257,7 +271,7 @@
             
             let rawCap = bat.capacity ? bat.capacity.replace('mAh', '') : '';
             capInput.value = rawCap === 'N/A' ? '' : rawCap;
-            cyclesInput.value = bat.cycles !== undefined ? bat.cycles : 0;
+            cyclesInput.value = bat.cycles !== undefined ? bat.cycles : '';
             
             nameInput.classList.remove('error');
             capInput.classList.remove('error');
@@ -380,30 +394,4 @@
                     <div class="battery-card">
                         <div class="card-header" onclick="toggleCard('${id}')">
                             <div class="card-top-row">
-                                <div class="battery-info-col">
-                                    <span class="battery-name">${bat.name}</span>
-                                    ${badgeHtml}
-                                </div>
-                                <span class="cycle-badge">${bat.cycles} Cycles</span>
-                            </div>
-                            <div class="card-bottom-row">
-                                <i class="chevron" id="chevron-${id}"></i>
-                            </div>
-                        </div>
-                        <div class="card-details" id="details-${id}">
-                            <textarea placeholder="Log IR readings (e.g. 3.2mΩ), punch-out feel, or crash history here..." 
-                                      oninput="saveNote('${id}', this.value)">${noteText}</textarea>
-                            <div class="action-row">
-                                <button class="btn-small btn-edit" onclick="triggerEdit('${id}')">Edit</button>
-                                <button class="btn-small btn-danger-solid" onclick="triggerDelete('${id}')">Delete</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        renderList();
-    </script>
-</body>
-</html>
+                                <div class="
