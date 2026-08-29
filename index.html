@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     
-    <link rel="manifest" href='data:application/manifest+json,{"name":"FPV Battery Cache","short_name":"Battery Cache","display":"standalone","background_color":"#000000","theme_color":"#000000"}'>
+    <link rel="manifest" href='data:application/manifest+json,%7B%22name%22%3A%22FPV%20Battery%20Cache%22%2C%22short_name%22%3A%22Battery%20Cache%22%2C%22display%22%3A%22fullscreen%22%2C%22start_url%22%3A%22.%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D'>
     
     <title>FPV Battery Cache</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -21,43 +21,53 @@
         body { font-family: 'Inter', sans-serif; font-weight: 300; background-color: var(--bg); color: var(--text-light); margin: 0; padding: 20px; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
         h1, h2, h3, strong { font-weight: 600; color: var(--text-bold); margin-top: 0; letter-spacing: -0.5px; }
         
-        #scanner-view, #modal-overlay { display: none; }
+        #scanner-view, #modal-overlay, #custom-dialog-overlay { display: none; }
         
         button { background: var(--primary); color: #000; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; border-radius: var(--radius); cursor: pointer; width: 100%; transition: opacity 0.2s; }
         button:active { opacity: 0.7; }
         button.secondary { background: transparent; color: var(--text-bold); border: 1px solid var(--border); }
+        button.danger { background: #ff4444; color: #fff; border: none; }
         
         .fab-container { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; }
         .fab { box-shadow: 0 10px 20px rgba(0,0,0,0.5); font-size: 18px; padding: 18px; }
 
-        /* Scanner Screen */
         #reader-container { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; margin-bottom: 20px; border: 1px solid var(--border); }
         #reader { width: 100%; }
         .scanner-hint { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; color: #fff; font-size: 14px; font-weight: 600; background: rgba(0,0,0,0.6); padding: 8px; pointer-events: none; }
         
-        /* Battery Cards */
         .battery-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
-        .card-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .card-header { padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; }
         .card-header:active { background: #1a1a1a; }
-        .battery-name { font-weight: 600; color: var(--text-bold); font-size: 16px; margin-bottom: 4px; }
-        .hint-text { font-size: 12px; color: #888888; }
-        .cycle-badge { background: #222; color: var(--text-light); padding: 6px 12px; border-radius: 20px; font-size: 14px; border: 1px solid var(--border); white-space: nowrap; }
         
-        /* Expandable Notes Area */
+        .battery-info-col { display: flex; flex-direction: column; align-items: flex-start; }
+        .battery-name { font-weight: 600; color: var(--text-bold); font-size: 16px; margin-bottom: 6px; }
+        
+        /* Spec Swatches */
+        .badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+        .spec-badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: #222; border: 1px solid #444; color: #aaa; font-weight: 600; letter-spacing: 0.5px; }
+        
+        .hint-text { font-size: 12px; color: #666; margin-top: 4px; }
+        .cycle-badge { background: #222; color: var(--text-light); padding: 6px 12px; border-radius: 20px; font-size: 14px; border: 1px solid var(--border); white-space: nowrap; margin-top: 2px; }
+        
         .card-details { display: none; padding: 0 16px 16px 16px; border-top: 1px solid var(--border); margin-top: 8px; }
         textarea { width: 100%; background: #000; color: var(--text-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif; font-size: 14px; box-sizing: border-box; resize: vertical; min-height: 80px; margin-top: 12px; }
         textarea:focus { outline: none; border-color: #666; }
         
-        /* Action Buttons */
         .action-row { display: flex; gap: 10px; margin-top: 12px; }
         .btn-small { padding: 10px; font-size: 14px; margin-top: 0; flex: 1; }
         .btn-edit { background: #222; color: #fff; border: 1px solid var(--border); }
-        .btn-danger { background: transparent; color: #ff4444; border: 1px solid #ff4444; }
+        .btn-danger-outline { background: transparent; color: #ff4444; border: 1px solid #ff4444; }
         
-        /* Modals */
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        #modal-overlay, #custom-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
         .modal-content { background: var(--surface); border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; }
-        input { width: 100%; padding: 14px; margin: 16px 0; background: #000; color: var(--text-bold); border: 1px solid var(--border); border-radius: 8px; font-size: 16px; font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        
+        input, select { width: 100%; padding: 14px; margin-top: 12px; background: #000; color: var(--text-bold); border: 1px solid var(--border); border-radius: 8px; font-size: 16px; font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23cccccc%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 14px top 50%; background-size: 12px auto; padding-right: 40px; }
+        
+        .form-row { display: flex; gap: 10px; }
+        .form-row select, .form-row input { flex: 1; }
+        
+        #edit-dialog, #delete-dialog { display: none; }
     </style>
 </head>
 <body>
@@ -80,11 +90,30 @@
     <div id="modal-overlay">
         <div class="modal-content">
             <h3 id="status-title">Label Detected</h3>
-            <p id="scanned-id" style="font-size: 12px; color: #666; margin-bottom: 16px;"></p>
+            <p id="scanned-id" style="font-size: 12px; color: #666; margin-bottom: 8px;"></p>
             
             <div id="new-battery-form">
-                <input type="text" id="battery-name" placeholder="e.g. Tattu 850 #1">
-                <button onclick="registerNewBattery()">Save Battery</button>
+                <input type="text" id="battery-name" placeholder="Name (e.g. Tattu R-Line)">
+                
+                <div class="form-row">
+                    <select id="battery-cells">
+                        <option value="1S">1S</option>
+                        <option value="2S">2S</option>
+                        <option value="3S">3S</option>
+                        <option value="4S" selected>4S</option>
+                        <option value="6S">6S</option>
+                        <option value="8S">8S</option>
+                    </select>
+                    <select id="battery-type">
+                        <option value="LiPo">LiPo</option>
+                        <option value="LiHV">LiHV</option>
+                        <option value="LiUHV">LiUHV</option>
+                        <option value="Li-ion">Li-ion</option>
+                    </select>
+                </div>
+                
+                <input type="number" id="battery-capacity" placeholder="Capacity (mAh)">
+                <button onclick="registerNewBattery()" style="margin-top: 16px;">Save Battery</button>
             </div>
 
             <div id="existing-battery-actions">
@@ -97,9 +126,29 @@
         </div>
     </div>
 
+    <div id="custom-dialog-overlay">
+        <div id="edit-dialog" class="modal-content">
+            <h3 style="margin-bottom: 8px;">Rename Battery</h3>
+            <input type="text" id="edit-battery-name-input">
+            <div class="action-row">
+                <button class="secondary btn-small" onclick="closeCustomDialogs()">Cancel</button>
+                <button class="btn-small" onclick="confirmEdit()">Save</button>
+            </div>
+        </div>
+        <div id="delete-dialog" class="modal-content">
+            <h3 style="margin-bottom: 8px;">Delete Battery</h3>
+            <p style="font-size: 14px; margin-bottom: 20px;">Are you sure you want to remove this battery from your cache?</p>
+            <div class="action-row">
+                <button class="secondary btn-small" onclick="closeCustomDialogs()">Cancel</button>
+                <button class="danger btn-small" onclick="confirmDelete()">Remove</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let batteryDb = JSON.parse(localStorage.getItem('fpvBatteries')) || {};
         let currentScannedId = null;
+        let pendingActionId = null; 
         let html5QrCode = null;
 
         async function prodAutofocus() {
@@ -109,9 +158,7 @@
                     const track = videoElement.srcObject.getVideoTracks()[0];
                     await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
                 }
-            } catch (error) {
-                console.log("Hardware autofocus API not supported on this device.");
-            }
+            } catch (error) {}
         }
 
         function openScanner() {
@@ -127,27 +174,23 @@
                     handleScanResult(decodedText);
                 }
             ).catch(err => {
-                alert("Camera access denied or failed.");
+                alert("Camera access denied.");
                 closeScanner();
             });
-            
-            // Initial focus prod after a slight delay to ensure stream is active
             setTimeout(prodAutofocus, 1500);
         }
 
         function closeScanner() {
             if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    document.getElementById('scanner-view').style.display = 'none';
-                    document.getElementById('dashboard-view').style.display = 'block';
-                }).catch(() => {
-                    document.getElementById('scanner-view').style.display = 'none';
-                    document.getElementById('dashboard-view').style.display = 'block';
-                });
+                html5QrCode.stop().then(resetViews).catch(resetViews);
             } else {
-                document.getElementById('scanner-view').style.display = 'none';
-                document.getElementById('dashboard-view').style.display = 'block';
+                resetViews();
             }
+        }
+        
+        function resetViews() {
+            document.getElementById('scanner-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'block';
         }
 
         function handleScanResult(decodedText) {
@@ -164,6 +207,7 @@
                 document.getElementById('existing-battery-actions').style.display = 'none';
                 document.getElementById('new-battery-form').style.display = 'block';
                 document.getElementById('battery-name').value = '';
+                document.getElementById('battery-capacity').value = '';
             }
         }
 
@@ -174,8 +218,21 @@
 
         function registerNewBattery() {
             const name = document.getElementById('battery-name').value;
-            if (!name) return alert("Please enter a name!");
-            batteryDb[currentScannedId] = { name: name, cycles: 0, notes: "" };
+            const cells = document.getElementById('battery-cells').value;
+            const type = document.getElementById('battery-type').value;
+            const capacity = document.getElementById('battery-capacity').value;
+            
+            if (!name) return;
+            
+            batteryDb[currentScannedId] = { 
+                name: name, 
+                cells: cells,
+                type: type,
+                capacity: capacity ? capacity + 'mAh' : 'N/A',
+                cycles: 0, 
+                notes: "" 
+            };
+            
             saveAndRefresh();
             handleScanResult(currentScannedId); 
         }
@@ -196,20 +253,39 @@
             localStorage.setItem('fpvBatteries', JSON.stringify(batteryDb));
         }
 
-        function editBattery(id) {
-            const currentName = batteryDb[id].name;
-            const newName = prompt("Enter a new name for this battery:", currentName);
-            if (newName && newName.trim() !== "") {
-                batteryDb[id].name = newName.trim();
-                saveAndRefresh();
-            }
+        function closeCustomDialogs() {
+            document.getElementById('custom-dialog-overlay').style.display = 'none';
+            document.getElementById('edit-dialog').style.display = 'none';
+            document.getElementById('delete-dialog').style.display = 'none';
+            pendingActionId = null;
         }
 
-        function deleteBattery(id) {
-            if (confirm(`Are you sure you want to delete "${batteryDb[id].name}"? This action cannot be undone.`)) {
-                delete batteryDb[id];
+        function triggerEdit(id) {
+            pendingActionId = id;
+            document.getElementById('edit-battery-name-input').value = batteryDb[id].name;
+            document.getElementById('custom-dialog-overlay').style.display = 'flex';
+            document.getElementById('edit-dialog').style.display = 'block';
+        }
+
+        function confirmEdit() {
+            const newName = document.getElementById('edit-battery-name-input').value;
+            if (newName && newName.trim() !== "") {
+                batteryDb[pendingActionId].name = newName.trim();
                 saveAndRefresh();
             }
+            closeCustomDialogs();
+        }
+
+        function triggerDelete(id) {
+            pendingActionId = id;
+            document.getElementById('custom-dialog-overlay').style.display = 'flex';
+            document.getElementById('delete-dialog').style.display = 'block';
+        }
+
+        function confirmDelete() {
+            delete batteryDb[pendingActionId];
+            saveAndRefresh();
+            closeCustomDialogs();
         }
 
         function saveAndRefresh() {
@@ -229,11 +305,22 @@
 
             for (const [id, bat] of entries) {
                 const noteText = bat.notes || "";
+                
+                // Fallback for older entries scanned before the cell/type update
+                const badgeHtml = (bat.cells || bat.type || bat.capacity) ? `
+                    <div class="badge-row">
+                        ${bat.cells ? `<span class="spec-badge">${bat.cells}</span>` : ''}
+                        ${bat.type ? `<span class="spec-badge">${bat.type}</span>` : ''}
+                        ${bat.capacity && bat.capacity !== 'N/A' ? `<span class="spec-badge">${bat.capacity}</span>` : ''}
+                    </div>
+                ` : '';
+
                 container.innerHTML += `
                     <div class="battery-card">
                         <div class="card-header" onclick="toggleCard('${id}')">
-                            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                            <div class="battery-info-col">
                                 <span class="battery-name">${bat.name}</span>
+                                ${badgeHtml}
                                 <span class="hint-text">▼ Tap for notes & options</span>
                             </div>
                             <span class="cycle-badge">${bat.cycles} Cycles</span>
@@ -242,8 +329,8 @@
                             <textarea placeholder="Log IR readings (e.g. 3.2mΩ), punch-out feel, or crash history here..." 
                                       oninput="saveNote('${id}', this.value)">${noteText}</textarea>
                             <div class="action-row">
-                                <button class="btn-small btn-edit" onclick="editBattery('${id}')">Rename</button>
-                                <button class="btn-small btn-danger" onclick="deleteBattery('${id}')">Delete</button>
+                                <button class="btn-small btn-edit" onclick="triggerEdit('${id}')">Rename</button>
+                                <button class="btn-small btn-danger-outline" onclick="triggerDelete('${id}')">Delete</button>
                             </div>
                         </div>
                     </div>
