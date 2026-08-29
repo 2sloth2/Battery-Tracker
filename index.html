@@ -24,6 +24,7 @@
             --text-bold: #1d1d1f; 
             --text-light: #515154; 
             --brand: #151136; 
+            --brand-light: #e5e4ef;
             --primary-text: #ffffff;
             --danger: #7a121f; 
             --input-bg: #f5f5f7;
@@ -38,7 +39,7 @@
             font-size: 24px;
             color: var(--brand);
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
@@ -54,21 +55,25 @@
         .fab { background: var(--brand); color: var(--primary-text); box-shadow: 0 4px 14px rgba(0,0,0,0.15); font-size: 18px; padding: 18px; }
         .fab-secondary { background: var(--surface); color: var(--text-bold); box-shadow: 0 4px 14px rgba(0,0,0,0.08); font-size: 18px; padding: 18px; border: 1px solid var(--border-light); }
 
+        /* Filter Bar */
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+        .filter-select { flex: 1; padding: 10px 32px 10px 12px; background: var(--surface); color: var(--text-bold); border: 1px solid var(--border-light); border-radius: 10px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 600; appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238e8e93%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 10px top 50%; background-size: 10px auto; transition: all 0.2s ease; outline: none; }
+        .filter-select.active-filter { border-color: var(--brand); color: var(--brand); background-color: var(--brand-light); }
+
         #reader-container { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; margin-bottom: 20px; }
         #reader { width: 100%; }
         
-        .battery-card { background: var(--surface); border-radius: var(--radius); margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
+        .battery-card { background: var(--surface); border-radius: var(--radius); margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
         .card-header { padding: 16px 16px 12px 16px; cursor: pointer; display: flex; flex-direction: column; }
         .card-header:active { background: #f9f9f9; }
         
-        .card-top-row { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
-        .battery-info-col { display: flex; flex-direction: column; align-items: flex-start; width: 100%; }
-        .battery-name { font-weight: 600; font-size: 16px; margin-bottom: 6px; }
+        .battery-header-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%; }
+        .battery-name { font-weight: 600; font-size: 16px; margin: 0; }
         
-        .badge-row { display: flex; gap: 6px; flex-wrap: wrap; }
-        .spec-badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: var(--bg); color: var(--text-light); font-weight: 600; }
+        .badge-row { display: flex; gap: 4px; flex-wrap: wrap; }
+        .spec-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--bg); color: var(--text-light); font-weight: 600; }
         
-        .card-middle-row { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; width: 100%; padding: 0 4px; box-sizing: border-box;}
+        .card-middle-row { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; width: 100%; padding: 0 4px; box-sizing: border-box;}
         .cycle-text { font-size: 16px; color: var(--text-bold); }
         .cycle-text strong { font-size: 18px; }
         .cycle-btn { background: var(--brand); color: var(--primary-text); padding: 10px 20px; font-size: 15px; border-radius: 10px; width: auto; }
@@ -96,8 +101,6 @@
         input.error, select.error { border-color: var(--danger); border-width: 1px; }
         input:focus, select:focus { outline: none; border-color: #c7c7cc; border-width: 1px; }
         
-        select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238e8e93%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 14px top 50%; background-size: 12px auto; padding-right: 40px; }
-        
         .form-row { display: flex; gap: 10px; }
         .form-row select, .form-row input { flex: 1; }
     </style>
@@ -106,6 +109,27 @@
 
     <div id="dashboard-view">
         <div class="brand-header">Battery Vault</div>
+        
+        <!-- Filter Controls -->
+        <div class="filter-bar">
+            <select id="filter-cells" class="filter-select" onchange="applyFilters()">
+                <option value="All">All Cells</option>
+                <option value="1S">1S Packs</option>
+                <option value="2S">2S Packs</option>
+                <option value="3S">3S Packs</option>
+                <option value="4S">4S Packs</option>
+                <option value="6S">6S Packs</option>
+                <option value="8S">8S Packs</option>
+            </select>
+            <select id="filter-type" class="filter-select" onchange="applyFilters()">
+                <option value="All">All Types</option>
+                <option value="LiPo">LiPo</option>
+                <option value="LiHV">LiHV</option>
+                <option value="LiUHV">LiUHV</option>
+                <option value="Li-ion">Li-ion</option>
+            </select>
+        </div>
+
         <div id="list-container"></div>
         <div class="fab-container">
             <button class="fab-secondary" onclick="openManualAdd()">Add Manually</button>
@@ -170,7 +194,7 @@
             <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">Are you sure you want to remove this battery from your vault?</p>
             <div class="card-actions" style="margin-top: 0; padding-top: 0; border: none;">
                 <button class="secondary btn-small" onclick="closeDeleteDialog()">Cancel</button>
-                <button class="btn-danger-solid btn-small" onclick="confirmDelete()">Remove</button>
+                <button class="btn-danger-solid btn-small" style="border: none;" onclick="confirmDelete()">Remove</button>
             </div>
         </div>
     </div>
@@ -181,6 +205,10 @@
         let editingBatteryId = null; 
         let pendingDeleteId = null; 
         let html5QrCode = null;
+        
+        // Filter states
+        let filterCellState = 'All';
+        let filterTypeState = 'All';
 
         function generateId() {
             return 'manual_' + Math.random().toString(36).substr(2, 9);
@@ -194,6 +222,23 @@
                     await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
                 }
             } catch (error) {}
+        }
+
+        function applyFilters() {
+            const cellSelect = document.getElementById('filter-cells');
+            const typeSelect = document.getElementById('filter-type');
+            
+            filterCellState = cellSelect.value;
+            filterTypeState = typeSelect.value;
+            
+            // Toggle highlight styles on the select boxes if active
+            if (filterCellState !== 'All') cellSelect.classList.add('active-filter');
+            else cellSelect.classList.remove('active-filter');
+            
+            if (filterTypeState !== 'All') typeSelect.classList.add('active-filter');
+            else typeSelect.classList.remove('active-filter');
+            
+            renderList();
         }
 
         function openManualAdd() {
@@ -422,12 +467,25 @@
             container.innerHTML = '';
             
             const entries = Object.entries(batteryDb);
+            
             if(entries.length === 0) {
                 container.innerHTML = '<p style="color: var(--text-light); text-align: center; margin-top: 40px;">No batteries in vault yet.</p>';
                 return;
             }
 
-            for (const [id, bat] of entries) {
+            // Apply Filters
+            const filteredEntries = entries.filter(([id, bat]) => {
+                const matchCell = (filterCellState === 'All') || (bat.cells === filterCellState);
+                const matchType = (filterTypeState === 'All') || (bat.type === filterTypeState);
+                return matchCell && matchType;
+            });
+
+            if(filteredEntries.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-light); text-align: center; margin-top: 40px;">No batteries match your active filters.</p>';
+                return;
+            }
+
+            for (const [id, bat] of filteredEntries) {
                 const noteText = bat.notes || "";
                 
                 const badgeHtml = (bat.cells || bat.type || bat.capacity) ? `
@@ -441,11 +499,9 @@
                 container.innerHTML += `
                     <div class="battery-card">
                         <div class="card-header" onclick="toggleCard('${id}')">
-                            <div class="card-top-row">
-                                <div class="battery-info-col">
-                                    <span class="battery-name">${bat.name}</span>
-                                    ${badgeHtml}
-                                </div>
+                            <div class="battery-header-group">
+                                <span class="battery-name">${bat.name}</span>
+                                ${badgeHtml}
                             </div>
                             <div class="card-middle-row">
                                 <span class="cycle-text"><strong>${bat.cycles}</strong> Cycles</span>
@@ -456,7 +512,7 @@
                             </div>
                         </div>
                         <div class="card-details" id="details-${id}">
-                            <span class="section-label">Flight Notes</span>
+                            <span class="section-label">Notes</span>
                             <textarea placeholder="Log IR readings (e.g. 3.2mΩ), punch-out feel, or crash history here..." 
                                       oninput="saveNote('${id}', this.value)">${noteText}</textarea>
                             <div class="card-actions">
