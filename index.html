@@ -30,6 +30,7 @@
             --input-bg: #f5f5f7;
             --border-light: #e5e5ea;
             --radius: 16px; 
+            --shadow-fab: 0 6px 16px rgba(0, 0, 0, 0.15);
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-bold); margin: 0; padding: 20px; padding-bottom: 150px; -webkit-tap-highlight-color: transparent; }
         
@@ -46,15 +47,14 @@
 
         h2, h3, strong { font-weight: 600; margin-top: 0; letter-spacing: -0.3px; }
         
-        #scanner-view, #modal-overlay, #custom-dialog-overlay { display: none; }
+        #scanner-view, #modal-overlay, #custom-dialog-overlay, #info-dialog-overlay { display: none; }
         
-        /* Global Button Styles */
         button { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; border-radius: var(--radius); cursor: pointer; width: 100%; transition: opacity 0.2s; border: none; padding: 14px 20px; }
         button:active { opacity: 0.7; }
         
         .fab-container { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; gap: 12px; }
-        .fab { background: var(--brand); color: var(--primary-text); box-shadow: 0 4px 14px rgba(0,0,0,0.15); font-size: 18px; padding: 18px; }
-        .fab-secondary { background: var(--surface); color: var(--text-bold); box-shadow: 0 4px 14px rgba(0,0,0,0.08); font-size: 18px; padding: 18px; border: 1px solid var(--border-light); }
+        .fab { background: var(--brand); color: var(--primary-text); box-shadow: var(--shadow-fab); font-size: 18px; padding: 18px; }
+        .fab-secondary { background: var(--surface); color: var(--text-bold); box-shadow: var(--shadow-fab); font-size: 18px; padding: 18px; border: 1px solid var(--border-light); }
 
         /* Filter Bar */
         .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; }
@@ -65,10 +65,13 @@
         #reader { width: 100%; }
         
         .battery-card { background: var(--surface); border-radius: var(--radius); margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
-        .card-header { padding: 16px 16px 12px 16px; cursor: pointer; display: flex; flex-direction: column; }
+        .card-header { position: relative; padding: 16px 16px 12px 16px; cursor: pointer; display: flex; flex-direction: column; }
         .card-header:active { background: #f9f9f9; }
         
-        .battery-header-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%; }
+        .info-icon { position: absolute; right: 12px; top: 12px; padding: 4px; color: #8e8e93; display: flex; align-items: center; justify-content: center; }
+        .info-icon:active { opacity: 0.5; }
+
+        .battery-header-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: calc(100% - 30px); }
         .battery-name { font-weight: 600; font-size: 16px; margin: 0; }
         
         .badge-row { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -88,16 +91,17 @@
         textarea { width: 100%; background: var(--input-bg); color: var(--text-bold); border: 1px solid transparent; border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif; font-size: 14px; box-sizing: border-box; resize: vertical; min-height: 80px; margin-top: 4px; }
         textarea:focus { outline: none; border-color: #c7c7cc; }
         
-        /* Unified Inline Small Buttons */
         .card-actions { display: flex; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light); }
         .btn-small { padding: 12px 10px; font-size: 14px; margin-top: 0; flex: 1; border-radius: 8px; }
         .btn-neutral { background: var(--border-light); color: var(--text-bold); }
         .btn-danger-solid { background: var(--danger); color: #fff; }
         
-        /* Secondary global buttons (like Cancel/Close full screen) */
         .secondary { background: var(--border-light); color: var(--text-bold); }
         
-        #modal-overlay, #custom-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; align-items: flex-start; justify-content: center; padding: 10vh 20px 20px 20px; box-sizing: border-box; overflow-y: auto; }
+        #modal-overlay, #custom-dialog-overlay, #info-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        /* Shift modal slightly upward if it's the main entry form */
+        #modal-overlay { align-items: flex-start; padding-top: 10vh; overflow-y: auto; }
+        
         .modal-content { background: var(--surface); padding: 24px; border-radius: var(--radius); width: 100%; max-width: 400px; text-align: center; margin-bottom: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
         input, select { width: 100%; padding: 14px; margin-top: 12px; background: var(--input-bg); color: var(--text-bold); border: 1px solid transparent; border-radius: 8px; font-size: 16px; font-family: 'Inter', sans-serif; box-sizing: border-box; transition: border-color 0.2s; }
@@ -106,6 +110,11 @@
         
         .form-row { display: flex; gap: 10px; }
         .form-row select, .form-row input { flex: 1; }
+
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-light); text-align: left; }
+        .info-row:last-of-type { border-bottom: none; margin-bottom: 16px; }
+        .info-label { font-size: 14px; color: var(--text-light); font-weight: 600; }
+        .info-value { font-size: 14px; color: var(--text-bold); font-family: monospace; }
     </style>
 </head>
 <body>
@@ -113,10 +122,9 @@
     <div id="dashboard-view">
         <div class="brand-header">Battery Vault</div>
         
-        <!-- Filter Controls -->
         <div class="filter-bar">
             <select id="filter-cells" class="filter-select" onchange="applyFilters()">
-                <option value="All">Cellcount</option>
+                <option value="All">All Cellcounts</option>
                 <option value="1S">1S Packs</option>
                 <option value="2S">2S Packs</option>
                 <option value="3S">3S Packs</option>
@@ -125,7 +133,7 @@
                 <option value="8S">8S Packs</option>
             </select>
             <select id="filter-type" class="filter-select" onchange="applyFilters()">
-                <option value="All">Chemistry</option>
+                <option value="All">All Chemistries</option>
                 <option value="LiPo">LiPo</option>
                 <option value="LiHV">LiHV</option>
                 <option value="LiUHV">LiUHV</option>
@@ -151,384 +159,4 @@
     <div id="modal-overlay">
         <div class="modal-content">
             <h3 id="modal-title">Register Battery</h3>
-            <p id="scanned-id" style="font-size: 12px; color: var(--text-light); margin-bottom: 8px;"></p>
-            
-            <div id="new-battery-form">
-                <input type="text" id="battery-name" placeholder="Name (e.g. Tattu R-Line)" oninput="this.classList.remove('error')">
-                
-                <div class="form-row">
-                    <select id="battery-cells">
-                        <option value="1S">1S</option>
-                        <option value="2S">2S</option>
-                        <option value="3S">3S</option>
-                        <option value="4S" selected>4S</option>
-                        <option value="6S">6S</option>
-                        <option value="8S">8S</option>
-                    </select>
-                    <select id="battery-type">
-                        <option value="LiPo">LiPo</option>
-                        <option value="LiHV">LiHV</option>
-                        <option value="LiUHV">LiUHV</option>
-                        <option value="Li-ion">Li-ion</option>
-                    </select>
-                </div>
-                
-                <div class="form-row">
-                    <input type="number" id="battery-capacity" placeholder="Capacity (mAh)" oninput="this.classList.remove('error')">
-                    <input type="number" id="battery-cycles-input" placeholder="Cycles" min="0" oninput="this.classList.remove('error')">
-                </div>
-
-                <button onclick="saveBatteryDetails()" style="background: var(--brand); color: #fff; margin-top: 16px;">Save Battery</button>
-            </div>
-
-            <div id="existing-battery-actions">
-                <h2 id="display-name" style="margin-bottom: 8px;"></h2>
-                <p style="color: var(--text-light); margin-bottom: 24px;">Cycles: <strong id="display-cycles" style="font-size: 28px; color: var(--text-bold);">0</strong></p>
-                <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">Battery recognized. Close this window to view it on your dashboard.</p>
-            </div>
-            
-            <button class="secondary" style="margin-top: 12px;" onclick="closeModal()">Close</button>
-        </div>
-    </div>
-
-    <div id="custom-dialog-overlay">
-        <div id="delete-dialog" class="modal-content">
-            <h3 style="margin-bottom: 8px;">Delete Battery</h3>
-            <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">Are you sure you want to remove this battery from your vault?</p>
-            <div class="card-actions" style="margin-top: 0; padding-top: 0; border: none;">
-                <button class="btn-small btn-neutral" onclick="closeDeleteDialog()">Cancel</button>
-                <button class="btn-small btn-danger-solid" onclick="confirmDelete()">Remove</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let batteryDb = JSON.parse(localStorage.getItem('fpvBatteries')) || {};
-        let currentScannedId = null;
-        let editingBatteryId = null; 
-        let pendingDeleteId = null; 
-        let html5QrCode = null;
-        
-        // Filter states
-        let filterCellState = 'All';
-        let filterTypeState = 'All';
-
-        function generateId() {
-            return 'manual_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        async function prodAutofocus() {
-            try {
-                const videoElement = document.querySelector('#reader video');
-                if (videoElement && videoElement.srcObject) {
-                    const track = videoElement.srcObject.getVideoTracks()[0];
-                    await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
-                }
-            } catch (error) {}
-        }
-
-        function applyFilters() {
-            const cellSelect = document.getElementById('filter-cells');
-            const typeSelect = document.getElementById('filter-type');
-            
-            filterCellState = cellSelect.value;
-            filterTypeState = typeSelect.value;
-            
-            // Toggle highlight styles on the select boxes if active
-            if (filterCellState !== 'All') cellSelect.classList.add('active-filter');
-            else cellSelect.classList.remove('active-filter');
-            
-            if (filterTypeState !== 'All') typeSelect.classList.add('active-filter');
-            else typeSelect.classList.remove('active-filter');
-            
-            renderList();
-        }
-
-        function openManualAdd() {
-            currentScannedId = generateId(); 
-            editingBatteryId = null; 
-            
-            document.getElementById('modal-overlay').style.display = 'flex';
-            document.getElementById('scanned-id').innerText = "ID: " + currentScannedId;
-            document.getElementById('modal-title').innerText = "Add Battery Manually";
-            
-            document.getElementById('existing-battery-actions').style.display = 'none';
-            document.getElementById('new-battery-form').style.display = 'block';
-            
-            const nameInput = document.getElementById('battery-name');
-            const capInput = document.getElementById('battery-capacity');
-            const cyclesInput = document.getElementById('battery-cycles-input');
-            
-            nameInput.value = '';
-            capInput.value = '';
-            cyclesInput.value = '';
-            
-            nameInput.classList.remove('error');
-            capInput.classList.remove('error');
-            cyclesInput.classList.remove('error');
-        }
-
-        function openScanner() {
-            document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('scanner-view').style.display = 'block';
-            
-            try {
-                if (html5QrCode) {
-                    html5QrCode.clear();
-                }
-            } catch(e) {}
-            
-            html5QrCode = new Html5Qrcode("reader");
-            
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 15, qrbox: { width: 280, height: 200 } },
-                (decodedText) => {
-                    closeScanner(); 
-                    handleScanResult(decodedText);
-                },
-                (errorMessage) => {}
-            ).then(() => {
-                setTimeout(prodAutofocus, 1500);
-            }).catch(err => {
-                alert("Camera access denied or failed.");
-                closeScanner();
-            });
-        }
-
-        function closeScanner() {
-            if (html5QrCode) {
-                try {
-                    html5QrCode.stop().then(() => {
-                        html5QrCode.clear();
-                        resetViews();
-                    }).catch(() => {
-                        resetViews();
-                    });
-                } catch(e) {
-                    resetViews();
-                }
-            } else {
-                resetViews();
-            }
-        }
-        
-        function resetViews() {
-            document.getElementById('scanner-view').style.display = 'none';
-            document.getElementById('dashboard-view').style.display = 'block';
-        }
-
-        function handleScanResult(decodedText) {
-            currentScannedId = decodedText;
-            editingBatteryId = null; 
-            
-            if (batteryDb[currentScannedId]) {
-                triggerEdit(currentScannedId);
-            } else {
-                document.getElementById('modal-overlay').style.display = 'flex';
-                document.getElementById('scanned-id').innerText = "ID: " + decodedText;
-                document.getElementById('modal-title').innerText = "Register Battery";
-                document.getElementById('existing-battery-actions').style.display = 'none';
-                document.getElementById('new-battery-form').style.display = 'block';
-                
-                const nameInput = document.getElementById('battery-name');
-                const capInput = document.getElementById('battery-capacity');
-                const cyclesInput = document.getElementById('battery-cycles-input');
-                
-                nameInput.value = '';
-                capInput.value = '';
-                cyclesInput.value = '';
-                
-                nameInput.classList.remove('error');
-                capInput.classList.remove('error');
-                cyclesInput.classList.remove('error');
-            }
-        }
-
-        function triggerEdit(id) {
-            editingBatteryId = id;
-            const bat = batteryDb[id];
-            
-            document.getElementById('modal-overlay').style.display = 'flex';
-            document.getElementById('scanned-id').innerText = "ID: " + id;
-            document.getElementById('modal-title').innerText = "Edit Battery Specs";
-            
-            document.getElementById('existing-battery-actions').style.display = 'none';
-            document.getElementById('new-battery-form').style.display = 'block';
-            
-            const nameInput = document.getElementById('battery-name');
-            const capInput = document.getElementById('battery-capacity');
-            const cyclesInput = document.getElementById('battery-cycles-input');
-            
-            nameInput.value = bat.name;
-            document.getElementById('battery-cells').value = bat.cells || '4S';
-            document.getElementById('battery-type').value = bat.type || 'LiPo';
-            
-            let rawCap = bat.capacity ? bat.capacity.replace('mAh', '') : '';
-            capInput.value = rawCap === 'N/A' ? '' : rawCap;
-            cyclesInput.value = bat.cycles !== undefined ? bat.cycles : '';
-            
-            nameInput.classList.remove('error');
-            capInput.classList.remove('error');
-            cyclesInput.classList.remove('error');
-        }
-
-        function closeModal() {
-            document.getElementById('modal-overlay').style.display = 'none';
-            currentScannedId = null;
-            editingBatteryId = null;
-        }
-
-        function saveBatteryDetails() {
-            const nameInput = document.getElementById('battery-name');
-            const capInput = document.getElementById('battery-capacity');
-            const cyclesInput = document.getElementById('battery-cycles-input');
-            const cells = document.getElementById('battery-cells').value;
-            const type = document.getElementById('battery-type').value;
-            
-            let isValid = true;
-            if (!nameInput.value.trim()) { nameInput.classList.add('error'); isValid = false; }
-            if (!capInput.value.trim()) { capInput.classList.add('error'); isValid = false; }
-            if (cyclesInput.value === '' || parseInt(cyclesInput.value) < 0) { cyclesInput.classList.add('error'); isValid = false; }
-            if (!isValid) return;
-            
-            const targetId = editingBatteryId || currentScannedId;
-            const cycleCount = parseInt(cyclesInput.value);
-            
-            if (editingBatteryId) {
-                batteryDb[targetId].name = nameInput.value.trim();
-                batteryDb[targetId].cells = cells;
-                batteryDb[targetId].type = type;
-                batteryDb[targetId].capacity = capInput.value.trim() + 'mAh';
-                batteryDb[targetId].cycles = cycleCount;
-            } else {
-                batteryDb[targetId] = { 
-                    name: nameInput.value.trim(), 
-                    cells: cells,
-                    type: type,
-                    capacity: capInput.value.trim() + 'mAh',
-                    cycles: cycleCount, 
-                    notes: "" 
-                };
-            }
-            
-            saveAndRefresh();
-            closeModal();
-        }
-
-        function addCycleToId(event, id) {
-            if (event) event.stopPropagation();
-            if(batteryDb[id]) {
-                batteryDb[id].cycles += 1;
-                saveAndRefresh();
-            }
-        }
-
-        function toggleCard(id) {
-            const detailsDiv = document.getElementById(`details-${id}`);
-            const chevron = document.getElementById(`chevron-${id}`);
-            
-            if (detailsDiv.style.display === 'block') {
-                detailsDiv.style.display = 'none';
-                chevron.classList.remove('open');
-            } else {
-                detailsDiv.style.display = 'block';
-                chevron.classList.add('open');
-            }
-        }
-
-        function saveNote(id, text) {
-            batteryDb[id].notes = text;
-            localStorage.setItem('fpvBatteries', JSON.stringify(batteryDb));
-        }
-
-        function closeDeleteDialog() {
-            document.getElementById('custom-dialog-overlay').style.display = 'none';
-            document.getElementById('delete-dialog').style.display = 'none';
-            pendingDeleteId = null;
-        }
-
-        function triggerDelete(id) {
-            pendingDeleteId = id;
-            document.getElementById('custom-dialog-overlay').style.display = 'flex';
-            document.getElementById('delete-dialog').style.display = 'block';
-        }
-
-        function confirmDelete() {
-            delete batteryDb[pendingDeleteId];
-            saveAndRefresh();
-            closeDeleteDialog();
-        }
-
-        function saveAndRefresh() {
-            localStorage.setItem('fpvBatteries', JSON.stringify(batteryDb));
-            renderList();
-        }
-
-        function renderList() {
-            const container = document.getElementById('list-container');
-            container.innerHTML = '';
-            
-            const entries = Object.entries(batteryDb);
-            
-            if(entries.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-light); text-align: center; margin-top: 40px;">No batteries in vault yet.</p>';
-                return;
-            }
-
-            // Apply Filters
-            const filteredEntries = entries.filter(([id, bat]) => {
-                const matchCell = (filterCellState === 'All') || (bat.cells === filterCellState);
-                const matchType = (filterTypeState === 'All') || (bat.type === filterTypeState);
-                return matchCell && matchType;
-            });
-
-            if(filteredEntries.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-light); text-align: center; margin-top: 40px;">No batteries match your active filters.</p>';
-                return;
-            }
-
-            for (const [id, bat] of filteredEntries) {
-                const noteText = bat.notes || "";
-                
-                const badgeHtml = (bat.cells || bat.type || bat.capacity) ? `
-                    <div class="badge-row">
-                        ${bat.cells ? `<span class="spec-badge">${bat.cells}</span>` : ''}
-                        ${bat.type ? `<span class="spec-badge">${bat.type}</span>` : ''}
-                        ${bat.capacity && bat.capacity !== 'N/A' ? `<span class="spec-badge">${bat.capacity}</span>` : ''}
-                    </div>
-                ` : '';
-
-                container.innerHTML += `
-                    <div class="battery-card">
-                        <div class="card-header" onclick="toggleCard('${id}')">
-                            <div class="battery-header-group">
-                                <span class="battery-name">${bat.name}</span>
-                                ${badgeHtml}
-                            </div>
-                            <div class="card-middle-row">
-                                <span class="cycle-text"><strong>${bat.cycles}</strong> Cycles</span>
-                                <button class="cycle-btn" onclick="addCycleToId(event, '${id}')">+1 Cycle</button>
-                            </div>
-                            <div class="card-bottom-row">
-                                <i class="chevron" id="chevron-${id}"></i>
-                            </div>
-                        </div>
-                        <div class="card-details" id="details-${id}">
-                            <span class="section-label">Notes</span>
-                            <textarea placeholder="Log IR readings (e.g. 3.2mΩ), punch-out feel, or crash history here..." 
-                                      oninput="saveNote('${id}', this.value)">${noteText}</textarea>
-                            <div class="card-actions">
-                                <button class="btn-small btn-neutral" onclick="triggerEdit('${id}')">Edit Battery</button>
-                                <button class="btn-small btn-danger-solid" onclick="triggerDelete('${id}')">Delete Battery</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        renderList();
-    </script>
-</body>
-</html>
+            <p id="scanned-id" style="font-size: 12px; color: var(--text-light); margin-bottom: 8px
