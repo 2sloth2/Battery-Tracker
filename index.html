@@ -53,7 +53,7 @@
         button { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; border-radius: var(--radius); cursor: pointer; width: 100%; transition: opacity 0.2s; border: none; padding: 14px 20px; box-shadow: none; }
         button:active { opacity: 0.7; }
         
-        /* New Solid Bottom Action Bar */
+        /* Solid Bottom Action Bar */
         .bottom-action-bar { 
             position: fixed; 
             bottom: 0; 
@@ -90,8 +90,8 @@
         .battery-header-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; }
         .battery-name { font-weight: 600; font-size: 16px; margin: 0; line-height: 20px; }
         
-        /* Optically aligned icon (nudged -2px up to meet text cap height) */
-        .info-icon { color: #c7c7cc; display: flex; align-items: center; justify-content: center; height: 20px; width: 20px; flex-shrink: 0; transition: color 0.2s; margin-top: -2px; }
+        /* Optically aligned icon (nudged -4px up to meet text cap height) */
+        .info-icon { color: #c7c7cc; display: flex; align-items: center; justify-content: center; height: 20px; width: 20px; flex-shrink: 0; transition: color 0.2s; margin-top: -4px; }
         .info-icon:active { color: var(--text-bold); }
         
         .badge-row { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -448,6 +448,8 @@
                 
             } else {
                 document.getElementById('modal-overlay').style.display = 'flex';
+                
+                // Keep the ID visible here because they just scanned a barcode and might want to see what was read
                 document.getElementById('scanned-id').innerText = "ID: " + decodedText;
                 document.getElementById('scanned-id').style.display = 'block';
                 
@@ -485,8 +487,9 @@
             if (!bat) return;
             
             document.getElementById('modal-overlay').style.display = 'flex';
-            document.getElementById('scanned-id').innerText = "ID: " + id;
-            document.getElementById('scanned-id').style.display = 'block';
+            
+            // Hide the ID completely on the Edit screen as requested
+            document.getElementById('scanned-id').style.display = 'none';
             
             document.getElementById('modal-title').innerText = "Edit Battery Specs";
             document.getElementById('modal-title').style.display = 'block';
