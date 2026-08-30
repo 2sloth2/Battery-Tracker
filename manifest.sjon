@@ -1,15 +1,16 @@
 {
-  "name": "FPV Battery Cache",
-  "short_name": "Battery Cache",
-  "display": "standalone",
+  "name": "FPV Battery Vault",
+  "short_name": "Vault",
   "start_url": "./index.html",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "display": "standalone",
+  "background_color": "#1d1d1f",
+  "theme_color": "#151136",
   "icons": [
     {
-      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Battery_icon.svg/192px-Battery_icon.svg.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
