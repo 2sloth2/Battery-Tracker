@@ -52,6 +52,7 @@
         button { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; border-radius: var(--radius); cursor: pointer; width: 100%; transition: opacity 0.2s; border: none; padding: 14px 20px; box-shadow: none; }
         button:active { opacity: 0.7; }
         
+        /* Solid Bottom Action Bar */
         .bottom-action-bar { 
             position: fixed; 
             bottom: 0; 
@@ -70,6 +71,7 @@
         .fab { background: var(--brand); color: var(--primary-text); font-size: 18px; padding: 18px; }
         .fab-secondary { background: var(--surface); color: var(--text-bold); font-size: 18px; padding: 18px; border: 1px solid var(--border-light); }
 
+        /* Filter Bar */
         .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; }
         .filter-select { flex: 1; padding: 10px 32px 10px 12px; background: var(--surface); color: var(--text-bold); border: 1px solid var(--border-light); border-radius: 10px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 600; appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238e8e93%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 10px top 50%; background-size: 10px auto; transition: all 0.2s ease; outline: none; box-shadow: none; }
         .filter-select.active-filter { border-color: var(--brand); color: var(--brand); background-color: var(--brand-light); }
@@ -94,10 +96,9 @@
         
         .card-middle-row { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; width: 100%; }
         
-        /* Updated Cycle Group Styling */
-        .cycle-text { font-size: 18px; color: var(--text-bold); }
-        .cycle-text strong { font-size: 24px; }
-        .cycle-btn { background: var(--brand); color: var(--primary-text); height: 38px; width: 48px; font-size: 24px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .cycle-text { font-size: 16px; color: var(--text-bold); }
+        .cycle-text strong { font-size: 18px; }
+        .cycle-btn { background: var(--brand); color: var(--primary-text); padding: 10px 20px; font-size: 15px; border-radius: 10px; width: auto; }
         
         .card-bottom-row { width: 100%; text-align: center; margin-top: 8px; height: 12px; }
         .chevron { border: solid #c7c7cc; border-width: 0 2px 2px 0; display: inline-block; padding: 4px; transform: rotate(45deg); transition: transform 0.2s ease; }
@@ -115,16 +116,15 @@
         
         .secondary { background: var(--border-light); color: var(--text-bold); }
         
-        /* Offset Modal Position (Upper-Middle Third) */
         #modal-overlay, #custom-dialog-overlay, #info-dialog-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.5); 
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
             z-index: 200; 
-            align-items: flex-start; /* Changed from center */
+            align-items: flex-start; 
             justify-content: center; 
-            padding: 15vh 20px 20px 20px; /* 15vh creates the upper-third visual offset */
+            padding: 15vh 20px 20px 20px; 
             box-sizing: border-box; 
             overflow-y: auto;
         }
@@ -236,14 +236,9 @@
                     <div class="badge-row" id="display-badges"></div>
                 </div>
                 
-                <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px;">
-                    <div style="text-align: right;">
-                        <span style="font-size: 13px; color: var(--text-light); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Cycles</span>
-                        <strong id="display-cycles" style="font-size: 32px; color: var(--brand); display: block; line-height: 1; margin-top: 4px;">0</strong>
-                    </div>
-                    <button onclick="addCycleFromScan()" style="background: var(--brand); color: #fff; height: 50px; width: 64px; font-size: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; margin: 0;">+</button>
-                </div>
+                <p style="color: var(--text-light); margin-bottom: 24px;">Current Cycles: <strong id="display-cycles" style="font-size: 36px; color: var(--brand); display: block; margin-top: 8px;">0</strong></p>
                 
+                <button onclick="addCycleFromScan()" style="background: var(--brand); color: #fff; margin-bottom: 12px;">+1 Cycle</button>
                 <button class="secondary" onclick="triggerEdit(currentScannedId)">Edit</button>
             </div>
             
@@ -485,7 +480,6 @@
             
             document.getElementById('modal-overlay').style.display = 'flex';
             
-            // ID hidden on edit screen
             document.getElementById('scanned-id').style.display = 'none';
             
             document.getElementById('modal-title').innerText = "Edit Battery Specs";
@@ -687,10 +681,8 @@
                                 </div>
                             </div>
                             <div class="card-middle-row">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <span class="cycle-text"><strong>${safeCycles}</strong> Cycles</span>
-                                    <button class="cycle-btn" onclick="addCycleToId(event, '${safeId}')">+</button>
-                                </div>
+                                <span class="cycle-text"><strong>${safeCycles}</strong> Cycles</span>
+                                <button class="cycle-btn" onclick="addCycleToId(event, '${safeId}')">+1 Cycle</button>
                             </div>
                             <div class="card-bottom-row">
                                 <i class="chevron" id="chevron-${safeId}"></i>
